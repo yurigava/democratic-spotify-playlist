@@ -1,0 +1,29 @@
+{
+  "name": "democratic-spotify-playlist",
+  "version": "1.0.0",
+  "description": "Reorders Collaborative Playlist Democratically",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node src/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yurigava/democratic-spotify-playlist.git"
+  },
+  "keywords": [
+    "spotify",
+    "democratic"
+  ],
+  "author": "Yuri Vaz",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/yurigava/democratic-spotify-playlist/issues"
+  },
+  "homepage": "https://github.com/yurigava/democratic-spotify-playlist#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "spotify-web-api-node": "^4.0.0",
+    "yargs": "^15.0.2"
+  }
+}
