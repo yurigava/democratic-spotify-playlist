@@ -17,7 +17,7 @@ var spotifyApi = new SpotifyWebApi({
   clientSecret: clientSecret
 });
 
-app.get('/', (req, res) => {
+app.get('/secret-login', (req, res) => {
       var authorizeURL = spotifyApi.createAuthorizeURL(scopes, state);
       res.redirect(authorizeURL);
 })
@@ -32,6 +32,15 @@ app.get('/callback', async (req, res) => {
         console.log(data.body)
         spotifyApi.setAccessToken(data.body['access_token']);
         spotifyApi.setRefreshToken(data.body['refresh_token']);
+        setTimeout(() => spotifyApi.refreshAccessToken().then(
+            function(data) {
+              console.log('The access token has been refreshed!');
+              spotifyApi.setAccessToken(data.body['access_token']);
+            },
+            function(err) {
+              console.log('Could not refresh access token', err);
+            }
+        ), data.body['expires_in'] * 1000)
     } else {
         console.log('Please Login')
     }
@@ -54,4 +63,4 @@ app.listen(PORT, () => {
     console.log(`app listening on port: ${PORT}`)
 })
 
-setInterval(() => { order.orderPlaylist(spotifyApi, args.playlistId) }, 2 * 60 * 1000)
+setInterval(() => { order.orderPlaylist(spotifyApi, args.playlistId) }, 1 * 60 * 1000)

@@ -30,7 +30,10 @@ function createListWithNewOrder(playedTracks) {
 
 async function getCurrentlyPlayingIndex(spotifyApi, tracksInfo) {
     var currentSong = await spotifyApi.getMyCurrentPlaybackState({})
-        .catch((err) => {console.log(err); throw error});
+        .catch((err) => {console.log(err)});
+    if(!currentSong.track) {
+        return 0;
+    }
     var currentIndex = tracksInfo.findIndex((trackInfo, index) => {
         return index >= previousSongIndex &&
         trackInfo.track.id === currentSong.body.item.id
@@ -60,21 +63,22 @@ function getChanges(oldList, newList) {
     for(let i = 0; i < oldList.length; i++) {
         if(oldList[i].index === newList[i].index)
             continue;
-        console.log([oldList[i].index, newList[i].index])
-        changes.push([oldList[i].index, newList[i].index])
-        fixOldArray(oldList, oldList[i].index, newList[i].index);
-        console.log(oldList.map((item) => item.index))
+        changes.push([newList[i].index, i])
+        fixOldArray(oldList, newList, i, newList[i].index);
     }
     return changes;
 }
 
-function fixOldArray(oldList, startIndex, endIndex) {
-    for(i = startIndex + 1; i < endIndex; i++) {
-        if(oldList[i].index >= startIndex) {
-            oldList[i].index = oldList[i].index++;
-        }
+function fixOldArray(oldList, newList, startIndex, endIndex) {
+    oldList.splice(startIndex, 0, oldList.splice(endIndex, 1)[0]);
+    newList[startIndex].index = oldList[startIndex].index;
+    for(i = endIndex; i >= startIndex + 1; i--) {
+        var newListIndex = newList.findIndex((item, nli) => {
+            return nli > startIndex && item.index === oldList[i].index
+        });
+        oldList[i].index++;
+        newList[newListIndex].index++; 
     }
-    oldList.splice(startIndex + 1, 0, oldList.splice(endIndex, 1)[0]);
 }
 
 function createListWithOldOrder(trackList) {
@@ -94,16 +98,16 @@ async function performChanges(spotifyApi, playlistId, changes) {
 }
 
 const orderPlaylist = async (spotifyApi, playlistId) => {
+    console.log('Reordering Playlists')
     let tracksInfo = await getTracks(spotifyApi, playlistId)
         .catch((err) => {console.log(err)});
     const currentIndex = await getCurrentlyPlayingIndex(spotifyApi, tracksInfo);
-    console.log(currentIndex)
     const notPlayedTracks = tracksInfo.slice(currentIndex);
     collectTracksByUsers(notPlayedTracks, currentIndex);
     tracksInfo = createListWithOldOrder(tracksInfo);
     const newList = createListWithNewOrder(tracksInfo.slice(0, currentIndex));
     const changes = getChanges(tracksInfo, newList);
-    //await performChanges(spotifyApi, playlistId, changes);
+    await performChanges(spotifyApi, playlistId, changes);
 }
 
 exports.orderPlaylist = orderPlaylist;
