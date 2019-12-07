@@ -9,7 +9,7 @@ var scopes = ['user-read-private', 'user-read-playback-state', 'playlist-modify-
   redirectUri = 'http://localhost:8080/callback',
   clientId = 'b87fd794fa18420d8a73507fd3d93989',
   clientSecret= args.secret,
-  state = 'some-state-of-my-choice';
+  state = null;
 
 var spotifyApi = new SpotifyWebApi({
   redirectUri: redirectUri,
@@ -29,6 +29,7 @@ app.get('/callback', async (req, res) => {
             console.log('Something went wrong!', err);
         });
     if(data) {
+        console.log(data.body)
         spotifyApi.setAccessToken(data.body['access_token']);
         spotifyApi.setRefreshToken(data.body['refresh_token']);
     } else {
@@ -53,4 +54,4 @@ app.listen(PORT, () => {
     console.log(`app listening on port: ${PORT}`)
 })
 
-setInterval(() => { order.orderPlaylist(spotifyApi) }, 2 * 60 * 1000)
+setInterval(() => { order.orderPlaylist(spotifyApi, args.playlistId) }, 2 * 60 * 1000)
