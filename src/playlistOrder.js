@@ -1,4 +1,4 @@
-var previousSongIndex = 13;
+var previousSongIndex = 0;
 var usersTracksMap = new Map();
 var trackLimit = 100;
 

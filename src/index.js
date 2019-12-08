@@ -63,4 +63,4 @@ app.listen(PORT, () => {
     console.log(`app listening on port: ${PORT}`)
 })
 
-setInterval(() => { order.orderPlaylist(spotifyApi, args.playlistId) }, 1 * 60 * 1000)
+setInterval(() => { order.orderPlaylist(spotifyApi, args.playlistId) }, 60 * 1000)
