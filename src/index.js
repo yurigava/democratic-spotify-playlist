@@ -40,7 +40,7 @@ app.get('/callback', async (req, res) => {
             function(err) {
               console.log('Could not refresh access token', err);
             }
-        ), data.body['expires_in'] * 1000)
+        ), data.body['expires_in'] * 500)
     } else {
         console.log('Please Login')
     }
