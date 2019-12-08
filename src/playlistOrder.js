@@ -1,4 +1,4 @@
-var previousSongIndex = 0;
+var previousSongIndex = 13;
 var usersTracksMap = new Map();
 var trackLimit = 100;
 
@@ -9,7 +9,7 @@ function collectTracksByUsers(tracksInfo, startIndex) {
             usersTracksMap.set(addedBy, [])
         }
         usersTracksMap.set(addedBy, usersTracksMap.get(addedBy).concat([{
-            "index": index + startIndex,
+            "index": index + startIndex + 1,
             "added_by": {"id": trackInfo.added_by.id},
             "track": { "id": trackInfo.track.id}
         }]))
