@@ -23,7 +23,7 @@ app.get('/secret-login', (req, res) => {
 })
 
 app.get('/callback', async (req, res) => {
-    res.send('You are successfully logged in');
+    res.send('You are successfully logged in.');
     var data = await spotifyApi.authorizationCodeGrant(req.query.code)
         .catch((err) => {
             console.log('Something went wrong!', err);

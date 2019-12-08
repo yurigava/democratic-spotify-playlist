@@ -1,5 +1,5 @@
 var previousSongIndex = 0;
-var usersTracksMap = new Map();
+var usersTracksMap;
 var trackLimit = 100;
 
 function collectTracksByUsers(tracksInfo, startIndex) {
@@ -34,12 +34,22 @@ async function getCurrentlyPlayingIndex(spotifyApi, tracksInfo) {
     if(!currentSong.body.item) {
         return previousSongIndex;
     }
-    var currentIndex = tracksInfo.findIndex((trackInfo, index) => {
+    var currentIndex = findIndexOfSongInList(tracksInfo, currentSong);
+    previousSongIndex = currentIndex;
+    return currentIndex;
+}
+
+function findIndexOfSongInList(tracksInfo, currentSong) {
+    var indexOfSong = tracksInfo.findIndex((trackInfo, index) => {
         return index >= previousSongIndex &&
         trackInfo.track.id === currentSong.body.item.id
     })
-    previousSongIndex = currentIndex;
-    return currentIndex;
+    if(indexOfSong < 0) {
+        indexOfSong = tracksInfo.findIndex((trackInfo, index) => {
+            return trackInfo.track.id === currentSong.body.item.id
+        })
+    }
+    return indexOfSong;
 }
 
 async function getTracks(spotifyApi, playlistId) {
@@ -99,6 +109,7 @@ async function performChanges(spotifyApi, playlistId, changes) {
 
 const orderPlaylist = async (spotifyApi, playlistId) => {
     console.log('Reordering Playlists')
+    usersTracksMap = new Map()
     let tracksInfo = await getTracks(spotifyApi, playlistId)
         .catch((err) => {console.log(err)});
     const currentIndex = await getCurrentlyPlayingIndex(spotifyApi, tracksInfo);
