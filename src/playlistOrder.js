@@ -103,7 +103,7 @@ const orderPlaylist = async (spotifyApi, playlistId) => {
         .catch((err) => {console.log(err)});
     const currentIndex = await getCurrentlyPlayingIndex(spotifyApi, tracksInfo);
     console.log(currentIndex);
-    const notPlayedTracks = tracksInfo.slice(currentIndex);
+    const notPlayedTracks = tracksInfo.slice(currentIndex + 1);
     collectTracksByUsers(notPlayedTracks, currentIndex);
     tracksInfo = createListWithOldOrder(tracksInfo);
     const newList = createListWithNewOrder(tracksInfo.slice(0, currentIndex + 1));

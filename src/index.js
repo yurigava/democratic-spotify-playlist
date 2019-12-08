@@ -32,7 +32,7 @@ app.get('/callback', async (req, res) => {
         console.log(data.body)
         spotifyApi.setAccessToken(data.body['access_token']);
         spotifyApi.setRefreshToken(data.body['refresh_token']);
-        setTimeout(() => spotifyApi.refreshAccessToken().then(
+        setInterval(() => spotifyApi.refreshAccessToken().then(
             function(data) {
               console.log('The access token has been refreshed!');
               spotifyApi.setAccessToken(data.body['access_token']);
