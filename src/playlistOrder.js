@@ -16,9 +16,13 @@ function collectTracksByUsers(tracksInfo, startIndex) {
     })
 }
 
-function createListWithNewOrder(playedTracks) {
-    var usersTracks = Array.from(usersTracksMap.values());
-    var newList = []
+function createListWithNewOrder(playedTracks, currentUserId) {
+    var usersTracks = filterEmptyArrays(Array.from(usersTracksMap.values()));
+    var newList = [];
+    for(let i=getUserIndex(currentUserId) + 1; i < usersTracks.length; i++) {
+        newList.push(usersTracks[i].shift())
+    }
+    usersTracks = filterEmptyArrays(usersTracks)
     while(usersTracks.length > 0) {
         usersTracks = usersTracks.filter((userTracks) => {
             newList.push(userTracks.shift())
@@ -28,6 +32,17 @@ function createListWithNewOrder(playedTracks) {
     return playedTracks.concat(newList);
 }
 
+function filterEmptyArrays(arrayOfArrays) {
+    return arrayOfArrays.filter(array => {
+        return array.length > 0;
+    });
+}
+
+function getUserIndex(currentUserId) {
+    let userIds = Array.from(usersTracksMap.keys())
+    return userIds.findIndex(userId => userId === currentUserId)
+}
+
 async function getCurrentlyPlayingIndex(spotifyApi, tracksInfo) {
     var currentSong = await spotifyApi.getMyCurrentPlaybackState({})
         .catch((err) => {console.log(err)});
@@ -35,8 +50,7 @@ async function getCurrentlyPlayingIndex(spotifyApi, tracksInfo) {
         return previousSongIndex;
     }
     var currentIndex = findIndexOfSongInList(tracksInfo, currentSong);
-    previousSongIndex = currentIndex;
-    return currentIndex;
+    return previousSongIndex = currentIndex > previousSongIndex ? currentIndex : previousSongIndex;
 }
 
 function findIndexOfSongInList(tracksInfo, currentSong) {
@@ -49,7 +63,7 @@ function findIndexOfSongInList(tracksInfo, currentSong) {
             return trackInfo.track.id === currentSong.body.item.id
         })
     }
-    return indexOfSong;
+    return indexOfSong < 0 ? previousSongIndex : indexOfSong;
 }
 
 async function getTracks(spotifyApi, playlistId) {
@@ -117,7 +131,7 @@ const orderPlaylist = async (spotifyApi, playlistId) => {
     const notPlayedTracks = tracksInfo.slice(currentIndex + 1);
     collectTracksByUsers(notPlayedTracks, currentIndex);
     tracksInfo = createListWithOldOrder(tracksInfo);
-    const newList = createListWithNewOrder(tracksInfo.slice(0, currentIndex + 1));
+    const newList = createListWithNewOrder(tracksInfo.slice(0, currentIndex + 1), tracksInfo[currentIndex].added_by);
     const changes = getChanges(tracksInfo, newList);
     await performChanges(spotifyApi, playlistId, changes);
 }
