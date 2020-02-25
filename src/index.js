@@ -44,6 +44,7 @@ app.get('/callback', async (req, res) => {
     } else {
         console.log('Please Login')
     }
+    order.orderPlaylist(spotifyApi, args.playlistId)
 })
 
 app.get('/current', async (req,res) => {

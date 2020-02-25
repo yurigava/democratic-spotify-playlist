@@ -1,5 +1,6 @@
 var previousSongIndex = 0;
 var usersTracksMap;
+var usersOrder = [];
 var trackLimit = 100;
 
 function collectTracksByUsers(tracksInfo, startIndex) {
@@ -14,10 +15,21 @@ function collectTracksByUsers(tracksInfo, startIndex) {
             "track": { "id": trackInfo.track.id}
         }]))
     })
+    usersOrder = createNewUsersOrder(Array.from(usersTracksMap.keys()))
+}
+
+function createNewUsersOrder(collectedUsersArray) {
+    if (usersOrder.length > 0 && usersOrder.length >= collectedUsersArray) {
+        return usersOrder
+    }
+    else {
+      var newUsers = collectedUsersArray.filter(user => !usersOrder.includes(user))
+      return usersOrder.concat(newUsers)
+    }
 }
 
 function createListWithNewOrder(playedTracks, currentUserId) {
-    var usersTracks = filterEmptyArrays(Array.from(usersTracksMap.values()));
+    var usersTracks = getOrderedArrayOfArrays();
     var newList = [];
     for(let i=getUserIndex(currentUserId) + 1; i < usersTracks.length; i++) {
         newList.push(usersTracks[i].shift())
@@ -32,6 +44,14 @@ function createListWithNewOrder(playedTracks, currentUserId) {
     return playedTracks.concat(newList);
 }
 
+function getOrderedArrayOfArrays() {
+    var orderedArray = [];
+    usersOrder.forEach(user => {
+        orderedArray.push(usersTracksMap.get(user))
+    })
+    return orderedArray
+}
+
 function filterEmptyArrays(arrayOfArrays) {
     return arrayOfArrays.filter(array => {
         return array.length > 0;
@@ -39,7 +59,8 @@ function filterEmptyArrays(arrayOfArrays) {
 }
 
 function getUserIndex(currentUserId) {
-    let userIds = Array.from(usersTracksMap.keys())
+    let userIds = usersOrder
+    console.log(userIds)
     return userIds.findIndex(userId => userId === currentUserId)
 }
 
@@ -131,7 +152,7 @@ const orderPlaylist = async (spotifyApi, playlistId) => {
     const notPlayedTracks = tracksInfo.slice(currentIndex + 1);
     collectTracksByUsers(notPlayedTracks, currentIndex);
     tracksInfo = createListWithOldOrder(tracksInfo);
-    const newList = createListWithNewOrder(tracksInfo.slice(0, currentIndex + 1), tracksInfo[currentIndex].added_by);
+    const newList = createListWithNewOrder(tracksInfo.slice(0, currentIndex + 1), tracksInfo[currentIndex].added_by.id);
     const changes = getChanges(tracksInfo, newList);
     await performChanges(spotifyApi, playlistId, changes);
 }
