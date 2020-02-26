@@ -41,26 +41,28 @@ function createListWithNewOrder(playedTracks, currentUserId) {
             return userTracks.length > 0
         })
     }
+    console.log(newList.length)
     return playedTracks.concat(newList);
 }
 
 function getOrderedArrayOfArrays() {
     var orderedArray = [];
     usersOrder.forEach(user => {
-        orderedArray.push(usersTracksMap.get(user))
+	if(usersTracksMap.get(user)) {
+            orderedArray.push(usersTracksMap.get(user))
+	}
     })
-    return orderedArray
+    return filterEmptyArrays(orderedArray)
 }
 
 function filterEmptyArrays(arrayOfArrays) {
     return arrayOfArrays.filter(array => {
-        return array.length > 0;
+        return array ? true : false
     });
 }
 
 function getUserIndex(currentUserId) {
     let userIds = usersOrder
-    console.log(userIds)
     return userIds.findIndex(userId => userId === currentUserId)
 }
 
@@ -117,6 +119,8 @@ function getChanges(oldList, newList) {
 function fixOldArray(oldList, newList, startIndex, endIndex) {
     oldList.splice(startIndex, 0, oldList.splice(endIndex, 1)[0]);
     newList[startIndex].index = oldList[startIndex].index;
+    console.log(oldList.length)
+    console.log(newList.length)
     for(i = endIndex; i >= startIndex + 1; i--) {
         var newListIndex = newList.findIndex((item, nli) => {
             return nli > startIndex && item.index === oldList[i].index
@@ -151,9 +155,9 @@ const orderPlaylist = async (spotifyApi, playlistId) => {
     console.log(currentIndex);
     const notPlayedTracks = tracksInfo.slice(currentIndex + 1);
     collectTracksByUsers(notPlayedTracks, currentIndex);
-    tracksInfo = createListWithOldOrder(tracksInfo);
-    const newList = createListWithNewOrder(tracksInfo.slice(0, currentIndex + 1), tracksInfo[currentIndex].added_by.id);
-    const changes = getChanges(tracksInfo, newList);
+    var oldTracksInfo = createListWithOldOrder(tracksInfo);
+    const newList = createListWithNewOrder(oldTracksInfo.slice(0, currentIndex + 1), oldTracksInfo[currentIndex].added_by.id);
+    const changes = getChanges(oldTracksInfo, newList);
     await performChanges(spotifyApi, playlistId, changes);
 }
 
