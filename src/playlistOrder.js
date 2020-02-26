@@ -31,8 +31,10 @@ function createNewUsersOrder(collectedUsersArray) {
 function createListWithNewOrder(playedTracks, currentUserId) {
     var usersTracks = getOrderedArrayOfArrays();
     var newList = [];
-    for(let i=getUserIndex(currentUserId) + 1; i < usersTracks.length; i++) {
-        newList.push(usersTracks[i].shift())
+    for(let i=getUserIndex(currentUserId) + 1; i < usersOrder.length; i++) {
+	if(usersTracks[i]) {
+            newList.push(usersTracks[i].shift())
+	}
     }
     usersTracks = filterEmptyArrays(usersTracks)
     while(usersTracks.length > 0) {
@@ -148,7 +150,7 @@ const orderPlaylist = async (spotifyApi, playlistId) => {
     let tracksInfo = await getTracks(spotifyApi, playlistId)
         .catch((err) => {console.log(err)});
     const currentIndex = await getCurrentlyPlayingIndex(spotifyApi, tracksInfo);
-    console.log(currentIndex);
+    console.log(`Current index: ${currentIndex}`);
     const notPlayedTracks = tracksInfo.slice(currentIndex + 1);
     collectTracksByUsers(notPlayedTracks, currentIndex);
     tracksInfo = createListWithOldOrder(tracksInfo);
