@@ -30,7 +30,16 @@ Democratic-playlist comes to the rescue! The idea behind it is simple: a mechani
 
 Clone the repo and run `npm install` to install its dependencies. 
 
-Before running the app, it is necessary to set some enviroment variables regarding Spotify API authentication via Authorization code flow (more on the subject [here](https://github.com/thelinmichael/spotify-web-api-node#authorization)). For convinience there is a .env file in which details of the Spotify API can be added during development time. After configuring the enviroment variables, run:
+Before running the app, it is necessary to set some enviroment variables regarding Spotify API authentication via Authorization code flow (more on the subject [here](https://github.com/thelinmichael/spotify-web-api-node#authorization)). For convinience you can add a .env file in which details of the Spotify API can be added during development time:
+
+
+```
+SPOTIFY_CALLBACK=''
+SPOTIFY_CLIENT_ID=''
+SPOTIFY_CLIENT_SECRET=''
+``` 
+
+After configuring the enviroment variables, run:
 
 ```
  npm start

@@ -14,14 +14,10 @@ const scopes = [
 
 const state = null
 
-const redirectUri = process.env.SPOTIFY_CALLBACK
-const clientId = process.env.SPOTIFY_CLIENT_ID
-const clientSecret = process.env.SPOTIFY_CLIENT_SECRET
-
 const spotifyApi = new SpotifyWebApi({
-  redirectUri: redirectUri,
-  clientId: clientId,
-  clientSecret: clientSecret
+  redirectUri: process.env.SPOTIFY_CALLBACK,
+  clientId: process.env.SPOTIFY_CLIENT_ID,
+  clientSecret: process.env.SPOTIFY_CLIENT_SECRET
 })
 
 async function authenticate (code) {
