@@ -42,9 +42,6 @@
       "/node_modules/",
       ".fixture.js",
       ".mock.js"
-    ],
-    "setupFilesAfterEnv": [
-      "<rootDir>/jest.setup.js"
     ]
   }
 }
