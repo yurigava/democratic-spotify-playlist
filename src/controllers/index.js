@@ -1,13 +1,14 @@
 const voteSkipService = require('../services/voteSkipService')
-const spotifyService = require('../services/spotifyService')
+const spotifyAuthenticationService = require('../services/spotifyAuthenticationService')
+const spotifyPlaylistManagementService = require('../services/playlistManagementService')
 
 function login (req, res) {
-  res.redirect(spotifyService.createAuthorizeURL())
+  res.redirect(spotifyAuthenticationService.createAuthorizeURL())
 }
 
 async function callback (req, res) {
   res.send('You are successfully logged in.')
-  await spotifyService.authenticate(req.query.code)
+  await spotifyAuthenticationService.authenticate(req.query.code)
 }
 
 async function current (req, res) {
@@ -45,7 +46,7 @@ function voteskip (req, res) {
 }
 
 async function addPlaylist (req, res) {
-  spotifyService.managePlaylist(req.body.playlistId)
+  spotifyPlaylistManagementService.managePlaylist(req.body.playlistId)
   res.statusCode = 201
   res.json({ message: 'Playlist Added' })
 }

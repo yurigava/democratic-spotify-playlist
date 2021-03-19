@@ -3,10 +3,10 @@ jest.mock('spotify-web-api-node')
 
 const spotifyMockedFns = require('../../__mocks__/spotify-web-api-node.mock')
 
-const spotifyPlaylistService = require('../../src/services/spotifyService')
+const playlistManagementService = require('../../src/services/playlistManagementService')
 
-jest.mock('../../src/services/spotifyPlaylistOrderer')
-const mockiPlaylistOrderer = require('../../src/services/spotifyPlaylistOrderer')
+jest.mock('../../src/services/playlistOrderingService')
+const mockPlaylistOrderingService = require('../../src/services/playlistOrderingService')
 
 const playlistItemsFixture = require('../../__fixtures__/playListItems.fixture')
 const playlistFixture = require('../../__fixtures__/playlist.fixture')
@@ -36,9 +36,9 @@ describe('Spotify Reorder Endpoint should be called once for each unplayed track
     spotifyMockedFns.getPlaylistTracks = jest.fn().mockResolvedValue(playlistTracks)
     spotifyMockedFns.getPlaylist = jest.fn().mockResolvedValue(playlist)
     spotifyMockedFns.getMyCurrentPlaybackState = jest.fn().mockResolvedValue(playbackState)
-    jest.spyOn(mockiPlaylistOrderer, 'reorder').mockImplementation(() => [])
+    jest.spyOn(mockPlaylistOrderingService, 'reorder').mockImplementation(() => [])
     // Act
-    await spotifyPlaylistService.orderPlaylist('P1')
+    await playlistManagementService.orderPlaylist('P1')
 
     // Assert
     expect(spotifyMockedFns.reorderTracksInPlaylist).toHaveBeenCalledTimes(0)
@@ -53,9 +53,9 @@ describe('Spotify Reorder Endpoint should be called once for each unplayed track
     spotifyMockedFns.getPlaylistTracks = jest.fn().mockResolvedValue(playlistTracks)
     spotifyMockedFns.getPlaylist = jest.fn().mockResolvedValue(playlist)
     spotifyMockedFns.getMyCurrentPlaybackState = jest.fn().mockResolvedValue(playbackState)
-    jest.spyOn(mockiPlaylistOrderer, 'reorder').mockImplementation(() => ['A1'])
+    jest.spyOn(mockPlaylistOrderingService, 'reorder').mockImplementation(() => ['A1'])
     // Act
-    await spotifyPlaylistService.orderPlaylist('P1')
+    await playlistManagementService.orderPlaylist('P1')
 
     // Assert
     expect(spotifyMockedFns.reorderTracksInPlaylist).toHaveBeenCalledTimes(0)
@@ -70,10 +70,10 @@ describe('Spotify Reorder Endpoint should be called once for each unplayed track
     spotifyMockedFns.getPlaylistTracks = jest.fn().mockResolvedValue(playlistTracks)
     spotifyMockedFns.getPlaylist = jest.fn().mockResolvedValue(playlist)
     spotifyMockedFns.getMyCurrentPlaybackState = jest.fn().mockResolvedValue(playbackState)
-    jest.spyOn(mockiPlaylistOrderer, 'reorder').mockImplementation(() => [playlistTracks.body.items[0], playlistTracks.body.items[2], playlistTracks.body.items[1]])
+    jest.spyOn(mockPlaylistOrderingService, 'reorder').mockImplementation(() => [playlistTracks.body.items[0], playlistTracks.body.items[2], playlistTracks.body.items[1]])
 
     // Act
-    await spotifyPlaylistService.orderPlaylist('P1')
+    await playlistManagementService.orderPlaylist('P1')
 
     // Assert
     expect(spotifyMockedFns.reorderTracksInPlaylist).toHaveBeenCalledTimes(2)
@@ -91,10 +91,10 @@ describe('Spotify Reorder Endpoint should be called once for each unplayed track
     spotifyMockedFns.getPlaylistTracks = jest.fn().mockResolvedValue(playlistTracks)
     spotifyMockedFns.getPlaylist = jest.fn().mockResolvedValue(playlist)
     spotifyMockedFns.getMyCurrentPlaybackState = jest.fn().mockResolvedValue(playbackState)
-    jest.spyOn(mockiPlaylistOrderer, 'reorder').mockImplementation(() => [playlistTracks.body.items[0], playlistTracks.body.items[1], playlistTracks.body.items[4], playlistTracks.body.items[3], playlistTracks.body.items[2]])
+    jest.spyOn(mockPlaylistOrderingService, 'reorder').mockImplementation(() => [playlistTracks.body.items[0], playlistTracks.body.items[1], playlistTracks.body.items[4], playlistTracks.body.items[3], playlistTracks.body.items[2]])
 
     // Act
-    await spotifyPlaylistService.orderPlaylist('P1')
+    await playlistManagementService.orderPlaylist('P1')
 
     // Assert
     expect(spotifyMockedFns.reorderTracksInPlaylist).toHaveBeenCalledTimes(2)
@@ -112,10 +112,10 @@ describe('Spotify Reorder Endpoint should be called once for each unplayed track
     spotifyMockedFns.getPlaylistTracks = jest.fn().mockResolvedValue(playlistTracks)
     spotifyMockedFns.getPlaylist = jest.fn().mockResolvedValue(playlist)
     spotifyMockedFns.getMyCurrentPlaybackState = jest.fn().mockResolvedValue(playbackState)
-    jest.spyOn(mockiPlaylistOrderer, 'reorder').mockImplementation(() => playlistTracks.items)
+    jest.spyOn(mockPlaylistOrderingService, 'reorder').mockImplementation(() => playlistTracks.body.items)
 
     // Act
-    await spotifyPlaylistService.orderPlaylist('P1')
+    await playlistManagementService.orderPlaylist('P1')
 
     // Assert
     expect(spotifyMockedFns.reorderTracksInPlaylist).toHaveBeenCalledTimes(0)
@@ -126,7 +126,7 @@ describe('Spotify Reorder Endpoint should be called once for each unplayed track
     const playlistTracks = playlistFixture.generatePlaylist(playlistItemsFixture.generatePlaylistWithNItems(101))
     spotifyMockedFns.getPlaylistTracks = jest.fn().mockResolvedValue(playlistTracks)
 
-    await spotifyPlaylistService.orderPlaylist('P1')
+    await playlistManagementService.orderPlaylist('P1')
 
     // Assert
     expect(spotifyMockedFns.getPlaylistTracks).toHaveBeenCalledTimes(2)
@@ -146,7 +146,7 @@ describe('Unsucessuful playlist management', () => {
     spotifyMockedFns.getMe = jest.fn().mockResolvedValue(currentUserProfile)
 
     // Act - Assert
-    await expect(spotifyPlaylistService.managePlaylist('P1'))
+    await expect(playlistManagementService.managePlaylist('P1'))
       .rejects
       .toThrow(PlaylistDoesNotBelongToUserError)
     expect(setInterval).toHaveBeenCalledTimes(0)
@@ -161,7 +161,7 @@ describe('Unsucessuful playlist management', () => {
 
     // Act
     // Assert
-    await expect(spotifyPlaylistService.managePlaylist('NP1'))
+    await expect(playlistManagementService.managePlaylist('NP1'))
       .rejects
       .toThrow(PlaylistDoesNotBelongToUserError)
     expect(setInterval).toHaveBeenCalledTimes(0)
@@ -178,26 +178,26 @@ describe('Sucessful playlist management', () => {
 
   it('The method to order a playlist should be called indefenitly after a playlist is given to be managed by the service', async () => {
     // Arrange
-    spotifyPlaylistService.orderPlaylist = jest.fn()
+    playlistManagementService.orderPlaylist = jest.fn()
 
     // Act
-    await spotifyPlaylistService.managePlaylist('P1')
+    await playlistManagementService.managePlaylist('P1')
     jest.runOnlyPendingTimers()
     jest.runOnlyPendingTimers()
 
     // Assert
     expect(setInterval).toHaveBeenCalledTimes(1)
-    expect(spotifyPlaylistService.orderPlaylist).toHaveBeenCalledTimes(2)
+    expect(playlistManagementService.orderPlaylist).toHaveBeenCalledTimes(2)
   })
 
   // TODO check that the timer object has been correctly deleted
   it('When the service is requested to unmanage the playist, the timer for that playlist should cease running', async () => {
     // Arrange
-    spotifyPlaylistService.orderPlaylist = jest.fn()
+    playlistManagementService.orderPlaylist = jest.fn()
 
     // Act
-    await spotifyPlaylistService.managePlaylist('P1')
-    spotifyPlaylistService.unmanagePlaylist('P1')
+    await playlistManagementService.managePlaylist('P1')
+    playlistManagementService.unmanagePlaylist('P1')
 
     // Assert
     expect(clearInterval).toHaveBeenCalledTimes(1)

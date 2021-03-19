@@ -2,8 +2,8 @@
 const request = require('supertest')
 const server = require('../src/server')
 const voteSkip = require('../src/services/voteSkipService')
-const spotifyService = require('../src/services/spotifyService')
-jest.mock('../src/services/spotifyService')
+const playlistManagementService = require('../src/services/playlistManagementService')
+jest.mock('../src/services/playlistManagementService')
 
 const PlaylistDoesNotBelongToUserError = require('../src/errors/PlaylistDoesNotBelongToUserError')
 
@@ -71,7 +71,7 @@ describe('Voteskip', () => {
 
 describe('Playlist', () => {
   it('When a client requests to add a playlist that they do not own, an status code 400 should be returned', async () => {
-    spotifyService.managePlaylist = jest.fn(() => { throw new PlaylistDoesNotBelongToUserError('P1', 'U1') })
+    playlistManagementService.managePlaylist = jest.fn(() => { throw new PlaylistDoesNotBelongToUserError('P1', 'U1') })
 
     const res = await request(server)
       .post('/playlist')
@@ -82,7 +82,7 @@ describe('Playlist', () => {
   })
 
   it('When a client requests to add a playlist that they own for the first time, an status code 201 should be returned', async () => {
-    spotifyService.managePlaylist = jest.fn(() => true)
+    playlistManagementService.managePlaylist = jest.fn(() => true)
 
     const res = await request(server)
       .post('/playlist')
