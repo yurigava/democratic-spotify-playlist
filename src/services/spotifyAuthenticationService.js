@@ -9,6 +9,7 @@ const credentials = {
 const scopes = [
   'user-read-private',
   'user-read-playback-state',
+  'playlist-read-collaborative',
   'playlist-modify-public',
   'playlist-modify-private'
 ]
@@ -26,8 +27,8 @@ async function authenticate (code) {
   expirationDate.setTime(expirationTime)
 
   authenticated[accessData.refresh_token] = {
-    access_token: accessData.access_token,
-    refresh_token: accessData.refresh_token,
+    accessToken: accessData.access_token,
+    refreshToken: accessData.refresh_token,
     expirationDate: expirationDate
   }
 }
