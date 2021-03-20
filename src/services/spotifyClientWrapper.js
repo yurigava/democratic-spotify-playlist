@@ -12,7 +12,7 @@ class SpotifyClientWrapper {
 
     if (data) {
       console.log(data.body)
-      return [data.body.access_token, data.body_refresh_token]
+      return data.body
     } else {
       console.log('Please Login')
       return ['', '']

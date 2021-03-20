@@ -17,14 +17,23 @@ const state = null
 
 const authenticated = {}
 
-const spotifyApi = new SpotifyClientWrapper(credentials)
-
 async function authenticate (code) {
-  const [accessToken, refreshToken] = await spotifyApi.authenticate(code)
-  authenticated[refreshToken] = accessToken
+  const spotifyApi = new SpotifyClientWrapper(credentials)
+  const accessData = await spotifyApi.authenticate(code)
+
+  const expirationTime = Date.now() + accessData.expires_in * 1000
+  const expirationDate = new Date()
+  expirationDate.setTime(expirationTime)
+
+  authenticated[accessData.refresh_token] = {
+    access_token: accessData.access_token,
+    refresh_token: accessData.refresh_token,
+    expirationDate: expirationDate
+  }
 }
 
 function createAuthorizeURL () {
+  const spotifyApi = new SpotifyClientWrapper(credentials)
   return spotifyApi.createAuthorizeURL(scopes, state)
 }
 
