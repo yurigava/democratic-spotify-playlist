@@ -46,7 +46,7 @@ function voteskip (req, res) {
 }
 
 async function addPlaylist (req, res) {
-  spotifyPlaylistManagementService.managePlaylist(req.body.playlistId)
+  spotifyPlaylistManagementService.managePlaylist(req.body.playlistId, req.cookies.Auth)
   res.statusCode = 201
   res.json({ message: 'Playlist Added' })
 }
