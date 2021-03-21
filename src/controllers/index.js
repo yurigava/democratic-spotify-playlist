@@ -7,8 +7,9 @@ function login (req, res) {
 }
 
 async function callback (req, res) {
+  const authenticationData = await spotifyAuthenticationService.authenticate(req.query.code)
+  res.cookie('DP_RFT', authenticationData.refreshToken)
   res.send('You are successfully logged in.')
-  await spotifyAuthenticationService.authenticate(req.query.code)
 }
 
 async function current (req, res) {
@@ -46,7 +47,7 @@ function voteskip (req, res) {
 }
 
 async function addPlaylist (req, res) {
-  spotifyPlaylistManagementService.managePlaylist(req.body.playlistId, req.cookies.Auth)
+  spotifyPlaylistManagementService.managePlaylist(req.body.playlistId, req.cookies.DP_RFT)
   res.statusCode = 201
   res.json({ message: 'Playlist Added' })
 }

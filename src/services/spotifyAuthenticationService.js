@@ -31,6 +31,7 @@ async function authenticate (code) {
     refreshToken: accessData.refresh_token,
     expirationDate: expirationDate
   }
+  return authenticated[accessData.refresh_token]
 }
 
 function createAuthorizeURL () {

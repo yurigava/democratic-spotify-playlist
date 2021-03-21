@@ -75,7 +75,7 @@ describe('Playlist', () => {
 
     const res = await request(server)
       .post('/playlist')
-      .set('Cookie', ['Auth=RT1'])
+      .set('Cookie', ['DP_RFT=RT1'])
       .send({ playlistId: 'P1' })
 
     expect(res.statusCode).toBe(400)
@@ -87,7 +87,7 @@ describe('Playlist', () => {
 
     const res = await request(server)
       .post('/playlist')
-      .set('Cookie', ['Auth=RT1'])
+      .set('Cookie', ['DP_RFT=RT1'])
       .send({ playlistId: 'P1' })
 
     expect(res.statusCode).toBe(201)
