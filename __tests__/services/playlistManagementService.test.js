@@ -1,6 +1,4 @@
 /* eslint-env jest */
-jest.mock('spotify-web-api-node')
-
 const spotifyMockedFns = require('../../__mocks__/spotify-web-api-node.mock')
 
 const playlistManagementService = require('../../src/services/playlistManagementService')
@@ -8,16 +6,21 @@ const playlistManagementService = require('../../src/services/playlistManagement
 jest.mock('../../src/services/playlistOrderingService')
 const mockPlaylistOrderingService = require('../../src/services/playlistOrderingService')
 
+jest.mock('../../src/services/spotifyClientWrapper')
+const MockSpotifyClientWrapper = require('../../src/services/spotifyClientWrapper')
+
+const mockProvideAuthentication = jest.fn().mockImplementation(() => new MockSpotifyClientWrapper())
+const mockSpotifyAuthenticationService = require('../../src/services/spotifyAuthenticationService.js')
+mockSpotifyAuthenticationService.provideAuthenticatedClient = mockProvideAuthentication
+
 const playlistItemsFixture = require('../../__fixtures__/playListItems.fixture')
 const playlistFixture = require('../../__fixtures__/playlist.fixture')
-const playlistMetadataFixture = require('../../__fixtures__/playlistMetadata.fixture')
-const playbackStateFixture = require('../../__fixtures__/playbackState.fixture')
 const userPlaylistsFixture = require('../../__fixtures__/userPlaylists.fixture')
 const currentUserProfileFixture = require('../../__fixtures__/currentUserProfile.fixture')
 
 const PlaylistDoesNotBelongToUserError = require('../../src/errors/PlaylistDoesNotBelongToUserError')
 
-beforeEach(() => {
+beforeAll(() => {
   jest.useFakeTimers()
 })
 
@@ -26,99 +29,100 @@ afterEach(() => {
   jest.clearAllMocks()
 })
 
-describe('Spotify Reorder Endpoint should be called once for each unplayed track whose position in the reordered playlist differs from the current playlist', () => {
-  it('Spotify Reorder Endpoint should not be called for an empty playlist', async () => {
-    // Arrange
-    const playlistItems = []
-    const playlistTracks = playlistFixture.generatePlaylist(playlistItemsFixture.generatePlaylistItems(playlistItems))
-    const playlist = playlistMetadataFixture.generatePlaylistSnapshotId('S1')
-    const playbackState = playbackStateFixture.generatePlaybackState('A2')
-    spotifyMockedFns.getPlaylistTracks = jest.fn().mockResolvedValue(playlistTracks)
-    spotifyMockedFns.getPlaylist = jest.fn().mockResolvedValue(playlist)
-    spotifyMockedFns.getMyCurrentPlaybackState = jest.fn().mockResolvedValue(playbackState)
-    jest.spyOn(mockPlaylistOrderingService, 'reorder').mockImplementation(() => [])
-    // Act
-    await playlistManagementService.orderPlaylist('P1')
-
-    // Assert
-    expect(spotifyMockedFns.reorderTracksInPlaylist).toHaveBeenCalledTimes(0)
+function setupSpotifyClientWrapperMock (mocks) {
+  MockSpotifyClientWrapper.mockImplementation(() => {
+    return { ...mocks }
   })
+}
 
-  it('Spotify Reorder Endpoint should not be called for a playlist with single item', async () => {
+describe('Spotify Reorder Endpoint should be called once for each unplayed track whose position in the reordered playlist differs from the current playlist', () => {
+  it('Spotify Reorder Endpoint should not be called for a playlist [A1*]', async () => {
     // Arrange
     const playlistItems = [{ trackId: 'A1' }]
     const playlistTracks = playlistFixture.generatePlaylist(playlistItemsFixture.generatePlaylistItems(playlistItems))
-    const playlist = playlistMetadataFixture.generatePlaylistSnapshotId('S1')
-    const playbackState = playbackStateFixture.generatePlaybackState('A1')
-    spotifyMockedFns.getPlaylistTracks = jest.fn().mockResolvedValue(playlistTracks)
-    spotifyMockedFns.getPlaylist = jest.fn().mockResolvedValue(playlist)
-    spotifyMockedFns.getMyCurrentPlaybackState = jest.fn().mockResolvedValue(playbackState)
+    const mocks = {
+      retrievePlaylistTracks: jest.fn().mockResolvedValue(playlistTracks),
+      retrieveCurrentTrackId: jest.fn().mockResolvedValue('A1'),
+      retrievePlaylistSnapshotId: jest.fn().mockResolvedValue('S1'),
+      reorderTracksInPlaylist: jest.fn()
+    }
+    setupSpotifyClientWrapperMock(mocks)
+
     jest.spyOn(mockPlaylistOrderingService, 'reorder').mockImplementation(() => ['A1'])
     // Act
     await playlistManagementService.orderPlaylist('P1')
 
     // Assert
-    expect(spotifyMockedFns.reorderTracksInPlaylist).toHaveBeenCalledTimes(0)
+    expect(mocks.reorderTracksInPlaylist).toHaveBeenCalledTimes(0)
   })
 
   it('Spotify Reorder Tracks In Playlist should be called 2 times for a playlist [A1*, A2, B1]', async () => {
     // Arrange
     const playlistItems = [{ trackId: 'A1' }, { trackId: 'A2' }, { trackId: 'B1' }]
     const playlistTracks = playlistFixture.generatePlaylist(playlistItemsFixture.generatePlaylistItems(playlistItems))
-    const playlist = playlistMetadataFixture.generatePlaylistSnapshotId('S1')
-    const playbackState = playbackStateFixture.generatePlaybackState('A1')
-    spotifyMockedFns.getPlaylistTracks = jest.fn().mockResolvedValue(playlistTracks)
-    spotifyMockedFns.getPlaylist = jest.fn().mockResolvedValue(playlist)
-    spotifyMockedFns.getMyCurrentPlaybackState = jest.fn().mockResolvedValue(playbackState)
-    jest.spyOn(mockPlaylistOrderingService, 'reorder').mockImplementation(() => [playlistTracks.body.items[0], playlistTracks.body.items[2], playlistTracks.body.items[1]])
+    const mocks = {
+      retrievePlaylistTracks: jest.fn().mockResolvedValue(playlistTracks),
+      retrieveCurrentTrackId: jest.fn().mockResolvedValue('A1'),
+      retrievePlaylistSnapshotId: jest.fn().mockResolvedValue('S1'),
+      reorderTracksInPlaylist: jest.fn()
+    }
+    setupSpotifyClientWrapperMock(mocks)
+    jest.spyOn(mockPlaylistOrderingService, 'reorder').mockImplementation(() => [playlistTracks.items[0], playlistTracks.items[2], playlistTracks.items[1]])
 
     // Act
     await playlistManagementService.orderPlaylist('P1')
 
     // Assert
-    expect(spotifyMockedFns.reorderTracksInPlaylist).toHaveBeenCalledTimes(2)
-    expect(spotifyMockedFns.reorderTracksInPlaylist).toHaveBeenNthCalledWith(1, 'P1', 1, 2, { snapshot_id: 'S1' })
-    expect(spotifyMockedFns.reorderTracksInPlaylist).toHaveBeenNthCalledWith(2, 'P1', 2, 1, { snapshot_id: 'S1' })
+    expect(mockPlaylistOrderingService.reorder).toHaveBeenCalledWith(playlistTracks.items, playlistTracks.items[0])
+    expect(mocks.reorderTracksInPlaylist).toHaveBeenCalledTimes(2)
+    expect(mocks.reorderTracksInPlaylist).toHaveBeenNthCalledWith(1, 'P1', 1, 2, { snapshot_id: 'S1' })
+    expect(mocks.reorderTracksInPlaylist).toHaveBeenNthCalledWith(2, 'P1', 2, 1, { snapshot_id: 'S1' })
   })
 
   it('Spotify Reorder Tracks In Playlist should be called 2 times for a playlist [A1, *A2, B1, C1, A3]', async () => {
     // Arrange
     const playlistItems = [{ trackId: 'A1' }, { trackId: 'A2' }, { trackId: 'B1' }, { trackId: 'C1' }, { trackId: 'A3' }]
     const playlistTracks = playlistFixture.generatePlaylist(playlistItemsFixture.generatePlaylistItems(playlistItems))
-    const playlist = playlistMetadataFixture.generatePlaylistSnapshotId('S1')
-    const playbackState = playbackStateFixture.generatePlaybackState('A2')
+    const mocks = {
+      retrievePlaylistTracks: jest.fn().mockResolvedValue(playlistTracks),
+      retrieveCurrentTrackId: jest.fn().mockResolvedValue('A2'),
+      retrievePlaylistSnapshotId: jest.fn().mockResolvedValue('S1'),
+      reorderTracksInPlaylist: jest.fn()
+    }
+    setupSpotifyClientWrapperMock(mocks)
 
-    spotifyMockedFns.getPlaylistTracks = jest.fn().mockResolvedValue(playlistTracks)
-    spotifyMockedFns.getPlaylist = jest.fn().mockResolvedValue(playlist)
-    spotifyMockedFns.getMyCurrentPlaybackState = jest.fn().mockResolvedValue(playbackState)
-    jest.spyOn(mockPlaylistOrderingService, 'reorder').mockImplementation(() => [playlistTracks.body.items[0], playlistTracks.body.items[1], playlistTracks.body.items[4], playlistTracks.body.items[3], playlistTracks.body.items[2]])
+    jest.spyOn(mockPlaylistOrderingService, 'reorder').mockImplementation(() => [playlistTracks.items[0], playlistTracks.items[1], playlistTracks.items[4], playlistTracks.items[3], playlistTracks.items[2]])
 
     // Act
     await playlistManagementService.orderPlaylist('P1')
 
     // Assert
-    expect(spotifyMockedFns.reorderTracksInPlaylist).toHaveBeenCalledTimes(2)
-    expect(spotifyMockedFns.reorderTracksInPlaylist).toHaveBeenNthCalledWith(1, 'P1', 2, 4, { snapshot_id: 'S1' })
-    expect(spotifyMockedFns.reorderTracksInPlaylist).toHaveBeenNthCalledWith(2, 'P1', 4, 2, { snapshot_id: 'S1' })
+    expect(mockPlaylistOrderingService.reorder).toHaveBeenCalledWith(playlistTracks.items, playlistTracks.items[1])
+    expect(mocks.reorderTracksInPlaylist).toHaveBeenCalledTimes(2)
+    expect(mocks.reorderTracksInPlaylist).toHaveBeenNthCalledWith(1, 'P1', 2, 4, { snapshot_id: 'S1' })
+    expect(mocks.reorderTracksInPlaylist).toHaveBeenNthCalledWith(2, 'P1', 4, 2, { snapshot_id: 'S1' })
   })
 
   it('Spotify Reorder Endpoint should not be called for any playlist if the currently playing song of the user is not in the playlist', async () => {
     // Arrange
     const playlistItems = [{ trackId: 'A1' }, { trackId: 'A2' }, { trackId: 'B1' }, { trackId: 'C1' }, { trackId: 'A3' }]
     const playlistTracks = playlistFixture.generatePlaylist(playlistItemsFixture.generatePlaylistItems(playlistItems))
-    const playlist = playlistMetadataFixture.generatePlaylistSnapshotId('S1')
-    const playbackState = playbackStateFixture.generatePlaybackState('N1')
+    const mocks = {
+      retrievePlaylistTracks: jest.fn().mockResolvedValue(playlistTracks),
+      retrieveCurrentTrackId: jest.fn().mockResolvedValue('NP1'),
+      retrievePlaylistSnapshotId: jest.fn().mockResolvedValue('S1'),
+      reorderTracksInPlaylist: jest.fn()
+    }
+    setupSpotifyClientWrapperMock(mocks)
 
-    spotifyMockedFns.getPlaylistTracks = jest.fn().mockResolvedValue(playlistTracks)
-    spotifyMockedFns.getPlaylist = jest.fn().mockResolvedValue(playlist)
-    spotifyMockedFns.getMyCurrentPlaybackState = jest.fn().mockResolvedValue(playbackState)
-    jest.spyOn(mockPlaylistOrderingService, 'reorder').mockImplementation(() => playlistTracks.body.items)
+    jest.spyOn(mockPlaylistOrderingService, 'reorder').mockImplementation(() => playlistTracks.items)
 
     // Act
     await playlistManagementService.orderPlaylist('P1')
 
     // Assert
-    expect(spotifyMockedFns.reorderTracksInPlaylist).toHaveBeenCalledTimes(0)
+    expect(mockPlaylistOrderingService.reorder).toHaveBeenCalledWith(playlistTracks.items, {})
+    expect(mocks.reorderTracksInPlaylist).toHaveBeenCalledTimes(0)
   })
 
   // TODO implement this correctly
@@ -140,10 +144,13 @@ describe('Spotify Reorder Endpoint should be called once for each unplayed track
 describe('Unsucessuful playlist management', () => {
   it('Trying to manage a playlist that the user does not own should throw exception and should not trigger a playlist reorder', async () => {
     // Arrange
-    const userPlaylists = userPlaylistsFixture.generateUserPlaylistsResponse([{ userId: 'U2', playlistId: 'P1' }])
-    const currentUserProfile = currentUserProfileFixture.generateCurrentUserProfileResponse({ userId: 'U1' })
-    spotifyMockedFns.getUserPlaylists = jest.fn().mockResolvedValue(userPlaylists)
-    spotifyMockedFns.getMe = jest.fn().mockResolvedValue(currentUserProfile)
+    const userPlaylists = userPlaylistsFixture.generateUserPlaylistsItem([{ userId: 'U2', playlistId: 'P1' }])
+    const currentUserProfile = currentUserProfileFixture.generateCurrentUserProfile({ userId: 'U1' })
+    const mocks = {
+      retrieveCurrentUserProfile: jest.fn().mockResolvedValue(currentUserProfile),
+      retrieveUserPlaylists: jest.fn().mockResolvedValue(userPlaylists)
+    }
+    setupSpotifyClientWrapperMock(mocks)
 
     // Act - Assert
     await expect(playlistManagementService.managePlaylist('P1'))
@@ -154,10 +161,13 @@ describe('Unsucessuful playlist management', () => {
 
   it('Trying to manage a playlist that does not exist should throw exception and should not trigger a plyalist reorder', async () => {
     // Arrange
-    const userPlaylists = userPlaylistsFixture.generateUserPlaylistsResponse([{ userId: 'U1', playlistId: 'P1' }])
-    const currentUserProfile = currentUserProfileFixture.generateCurrentUserProfileResponse({ userId: 'U1' })
-    spotifyMockedFns.getUserPlaylists = jest.fn().mockResolvedValue(userPlaylists)
-    spotifyMockedFns.getMe = jest.fn().mockResolvedValue(currentUserProfile)
+    const userPlaylists = userPlaylistsFixture.generateUserPlaylistsItem([{ userId: 'U1', playlistId: 'P1' }])
+    const currentUserProfile = currentUserProfileFixture.generateCurrentUserProfile({ userId: 'U1' })
+    const mocks = {
+      retrieveCurrentUserProfile: jest.fn().mockResolvedValue(currentUserProfile),
+      retrieveUserPlaylists: jest.fn().mockResolvedValue(userPlaylists)
+    }
+    setupSpotifyClientWrapperMock(mocks)
 
     // Act
     // Assert
@@ -170,10 +180,13 @@ describe('Unsucessuful playlist management', () => {
 
 describe('Sucessful playlist management', () => {
   beforeAll(() => {
-    const userPlaylists = userPlaylistsFixture.generateUserPlaylistsResponse([{ userId: 'U1', playlistId: 'P1' }])
-    const currentUserProfile = currentUserProfileFixture.generateCurrentUserProfileResponse({ userId: 'U1' })
-    spotifyMockedFns.getUserPlaylists = jest.fn().mockResolvedValue(userPlaylists)
-    spotifyMockedFns.getMe = jest.fn().mockResolvedValue(currentUserProfile)
+    const userPlaylists = userPlaylistsFixture.generateUserPlaylistsItem([{ userId: 'U1', playlistId: 'P1' }])
+    const currentUserProfile = currentUserProfileFixture.generateCurrentUserProfile({ userId: 'U1' })
+    const mocks = {
+      retrieveCurrentUserProfile: jest.fn().mockResolvedValue(currentUserProfile),
+      retrieveUserPlaylists: jest.fn().mockResolvedValue(userPlaylists)
+    }
+    setupSpotifyClientWrapperMock(mocks)
   })
 
   it('The method to order a playlist should be called indefenitly after a playlist is given to be managed by the service', async () => {

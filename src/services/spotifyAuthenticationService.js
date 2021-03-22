@@ -1,4 +1,8 @@
+const authenticatedUsers = require('../data/authenticatedUsers')
+
 const SpotifyClientWrapper = require('./spotifyClientWrapper')
+
+const TEN_MINUTES_MS = 600 * 1000
 
 const credentials = {
   redirectUri: process.env.SPOTIFY_CALLBACK,
@@ -16,22 +20,20 @@ const scopes = [
 
 const state = null
 
-const authenticated = {}
-
 async function authenticate (code) {
   const spotifyApi = new SpotifyClientWrapper(credentials)
   const accessData = await spotifyApi.authenticate(code)
 
-  const expirationTime = Date.now() + accessData.expires_in * 1000
-  const expirationDate = new Date()
-  expirationDate.setTime(expirationTime)
+  const expirationTime = new Date(Date.now() + accessData.expires_in * 1000 - TEN_MINUTES_MS).toISOString()
 
-  authenticated[accessData.refresh_token] = {
+  const authenticatedUser = {
     accessToken: accessData.access_token,
     refreshToken: accessData.refresh_token,
-    expirationDate: expirationDate
+    expirationTime: expirationTime
   }
-  return authenticated[accessData.refresh_token]
+
+  authenticatedUsers.add(accessData.refresh_token, authenticatedUser)
+  return authenticatedUser
 }
 
 function createAuthorizeURL () {
@@ -40,8 +42,13 @@ function createAuthorizeURL () {
 }
 
 function provideAuthenticatedClient (refreshToken) {
-  // TODO verify token validity and if it is not valid refresh it
-  return new SpotifyClientWrapper(authenticated[refreshToken])
+  let authenticatedUser = authenticatedUsers.get(refreshToken)
+  if (Date.now() >= (new Date(authenticatedUser.expirationTime).getTime())) {
+    const spotifyApiClient = new SpotifyClientWrapper(authenticatedUser)
+    authenticatedUser = spotifyApiClient.refreshToken()
+    authenticatedUsers.add(authenticatedUser.refreshToken, authenticatedUser)
+  }
+  return new SpotifyClientWrapper(authenticatedUser)
 }
 
 module.exports = {

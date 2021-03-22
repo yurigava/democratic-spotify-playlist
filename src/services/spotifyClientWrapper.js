@@ -94,6 +94,10 @@ class SpotifyClientWrapper {
   reorderTracksInPlaylist (playlistId, positionInCurentPlaylist, positionInOrderedPlaylist, options) {
     this.spotifyApi.reorderTracksInPlaylist(playlistId, positionInCurentPlaylist, positionInOrderedPlaylist, options)
   }
+
+  refreshToken () {
+    // TBI
+  }
 }
 
 module.exports = SpotifyClientWrapper
