@@ -36,8 +36,8 @@ async function managePlaylist (playlistId, refreshToken) {
   managedPlaylists[playlistId] = timer
 }
 
-function unmanagePlaylist (playlistId, refreshToken) {
-  validatePlaylistBelongsToUser(playlistId, refreshToken)
+async function unmanagePlaylist (playlistId, refreshToken) {
+  await validatePlaylistBelongsToUser(playlistId, refreshToken)
 
   clearInterval(managedPlaylists[playlistId])
   delete managedPlaylists[playlistId]

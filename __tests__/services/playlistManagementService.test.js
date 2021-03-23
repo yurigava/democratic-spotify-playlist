@@ -210,7 +210,7 @@ describe('Sucessful playlist management', () => {
 
     // Act
     await playlistManagementService.managePlaylist('P1')
-    playlistManagementService.unmanagePlaylist('P1')
+    await playlistManagementService.unmanagePlaylist('P1')
 
     // Assert
     expect(clearInterval).toHaveBeenCalledTimes(1)
