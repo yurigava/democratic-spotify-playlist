@@ -1,6 +1,6 @@
-const authenticatedUsers = require('../data/authenticatedUsers')
+const authenticatedUsers = require('../repositories/authenticatedUsers')
 
-const SpotifyClientWrapper = require('./spotifyClientWrapper')
+const SpotifyClientWrapper = require('../clients/SpotifyClientWrapper')
 
 const TEN_MINUTES_MS = 600 * 1000
 

@@ -5,7 +5,7 @@ const voteSkip = require('../src/services/voteSkipService')
 const playlistManagementService = require('../src/services/playlistManagementService')
 jest.mock('../src/services/playlistManagementService')
 
-const PlaylistDoesNotBelongToUserError = require('../src/errors/PlaylistDoesNotBelongToUserError')
+const ResourceDoesNotBelongToEntityError = require('../src/errors/ResourceDoesNotBelongToEntityError')
 
 beforeEach(() => {
   jest.useFakeTimers()
@@ -71,7 +71,7 @@ describe('Voteskip', () => {
 
 describe('Playlist', () => {
   it('When a client requests to add a playlist that they do not own, an status code 400 should be returned', async () => {
-    playlistManagementService.managePlaylist = jest.fn(() => { throw new PlaylistDoesNotBelongToUserError('P1', 'U1') })
+    playlistManagementService.managePlaylist = jest.fn(() => { throw new ResourceDoesNotBelongToEntityError('P1', 'U1') })
 
     const res = await request(server)
       .post('/playlist')
@@ -79,7 +79,7 @@ describe('Playlist', () => {
       .send({ playlistId: 'P1' })
 
     expect(res.statusCode).toBe(400)
-    expect(res.body.message).toBe('The given playlist [P1] does not belong to the user [U1]')
+    expect(res.body.message).toBe('The given resource [P1] does not belong to the entity [U1]')
   })
 
   it('When a client requests to add a playlist that they own for the first time, an status code 201 should be returned', async () => {

@@ -1,7 +1,7 @@
 const spotifyAuthenticationService = require('./spotifyAuthenticationService')
 const playlistOrderingService = require('./playlistOrderingService')
 
-const PlaylistDoesNotBelongToUserError = require('../errors/PlaylistDoesNotBelongToUserError')
+const ResourceDoesNotBelongToEntityError = require('../errors/ResourceDoesNotBelongToEntityError')
 
 const managedPlaylists = {}
 
@@ -49,7 +49,7 @@ async function validatePlaylistBelongsToUser (playlistId, refreshToken) {
   const userId = (await spotifyAuthenticatedClient.retrieveCurrentUserProfile()).id
   const playlistBelongsToUser = (await userPlaylists).some((playlist) => playlist.id === playlistId && playlist.owner.id === userId)
   if (!playlistBelongsToUser) {
-    throw new PlaylistDoesNotBelongToUserError(playlistId, userId)
+    throw new ResourceDoesNotBelongToEntityError(playlistId, userId)
   }
 }
 

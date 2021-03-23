@@ -6,8 +6,8 @@ const playlistManagementService = require('../../src/services/playlistManagement
 jest.mock('../../src/services/playlistOrderingService')
 const mockPlaylistOrderingService = require('../../src/services/playlistOrderingService')
 
-jest.mock('../../src/services/spotifyClientWrapper')
-const MockSpotifyClientWrapper = require('../../src/services/spotifyClientWrapper')
+jest.mock('../../src/clients/spotifyClientWrapper')
+const MockSpotifyClientWrapper = require('../../src/clients/SpotifyClientWrapper')
 
 const mockProvideAuthentication = jest.fn().mockImplementation(() => new MockSpotifyClientWrapper())
 const mockSpotifyAuthenticationService = require('../../src/services/spotifyAuthenticationService.js')
@@ -18,7 +18,7 @@ const playlistFixture = require('../../__fixtures__/playlist.fixture')
 const userPlaylistsFixture = require('../../__fixtures__/userPlaylists.fixture')
 const currentUserProfileFixture = require('../../__fixtures__/currentUserProfile.fixture')
 
-const PlaylistDoesNotBelongToUserError = require('../../src/errors/PlaylistDoesNotBelongToUserError')
+const ResourceDoesNotBelongToEntityError = require('../../src/errors/ResourceDoesNotBelongToEntityError')
 
 beforeAll(() => {
   jest.useFakeTimers()
@@ -155,7 +155,7 @@ describe('Unsucessuful playlist management', () => {
     // Act - Assert
     await expect(playlistManagementService.managePlaylist('P1'))
       .rejects
-      .toThrow(PlaylistDoesNotBelongToUserError)
+      .toThrow(ResourceDoesNotBelongToEntityError)
     expect(setInterval).toHaveBeenCalledTimes(0)
   })
 
@@ -173,7 +173,7 @@ describe('Unsucessuful playlist management', () => {
     // Assert
     await expect(playlistManagementService.managePlaylist('NP1'))
       .rejects
-      .toThrow(PlaylistDoesNotBelongToUserError)
+      .toThrow(ResourceDoesNotBelongToEntityError)
     expect(setInterval).toHaveBeenCalledTimes(0)
   })
 })
