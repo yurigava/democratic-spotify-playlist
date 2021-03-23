@@ -1,6 +1,4 @@
 /* eslint-env jest */
-const spotifyMockedFns = require('../../__mocks__/spotify-web-api-node.mock')
-
 const playlistManagementService = require('../../src/services/playlistManagementService')
 
 jest.mock('../../src/services/playlistOrderingService')
@@ -130,15 +128,7 @@ describe('Spotify Reorder Endpoint should be called once for each unplayed track
   })
 
   // TODO implement this correctly
-  it.skip('Spotify Playlist Items Endpoint should be called 2 times for a playlist with 101 tracks', async () => {
-    const playlistTracks = playlistFixture.generatePlaylist(playlistItemsFixture.generatePlaylistWithNItems(101))
-    spotifyMockedFns.getPlaylistTracks = jest.fn().mockResolvedValue(playlistTracks)
-
-    await playlistManagementService.orderPlaylist('P1')
-
-    // Assert
-    expect(spotifyMockedFns.getPlaylistTracks).toHaveBeenCalledTimes(2)
-  })
+  it.todo('Spotify Playlist Items Endpoint should be called 2 times for a playlist with 101 tracks')
 
   it.todo('An exception should be returned if there was a problem retrieving User´s Current Playback State from Spotify')
 
