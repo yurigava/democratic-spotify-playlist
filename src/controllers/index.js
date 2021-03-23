@@ -12,19 +12,6 @@ async function callback (req, res) {
   res.send('You are successfully logged in.')
 }
 
-async function current (req, res) {
-  /* const current = await spotifyApi.getMyCurrentPlaybackState({
-  })
-    .catch((err) => {
-      console.log('Something went wrong!', err)
-    })
-  if (current) {
-    res.send(current.body)
-  } else {
-    res.send('You are not logged.')
-  } */
-}
-
 function register (req, res) {
   if (voteSkipService.registerDevice(req.header('deviceId'))) {
     res.statusCode = 200
@@ -61,7 +48,6 @@ async function removePlaylist (req, res) {
 module.exports = {
   login,
   callback,
-  current,
   voteskip,
   register,
   addPlaylist,
