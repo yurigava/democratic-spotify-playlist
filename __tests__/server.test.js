@@ -167,3 +167,21 @@ describe('Non authenticated users are not allowed to call protected endpoints', 
     expect(res.body.message).toBe('The user is not authenticated. Please ensure to authenticate before performing this action')
   })
 })
+
+describe('Authentication', () => {
+  it('When a client succesfully authenticates in spotify, a cookie should be returned', async () => {
+    // Arrange
+    const userLoginData = { refreshToken: 'RFT1', accessToken: 'ACT1', renovationTimestamp: expect.anything() }
+    jest.spyOn(spotifyAuthenticationService, 'authenticate').mockReturnValue(userLoginData)
+
+    // Act
+    const res = await request(server)
+      .get('/callback?code=123456')
+      .send()
+
+    expect(spotifyAuthenticationService.authenticate).toHaveBeenCalledWith('123456')
+    expect(res.statusCode).toBe(200)
+    expect(res.header['set-cookie'][0]).toContain('DP_RFT=RFT1')
+    expect(res.body.message).toBe('You are successfully logged in')
+  })
+})

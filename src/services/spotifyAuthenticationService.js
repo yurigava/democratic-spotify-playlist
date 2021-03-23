@@ -24,12 +24,12 @@ async function authenticate (code) {
   const spotifyApi = new SpotifyClientWrapper(credentials)
   const accessData = await spotifyApi.authenticate(code)
 
-  const expirationTime = new Date(Date.now() + accessData.expires_in * 1000 - TEN_MINUTES_MS).toISOString()
+  const renovationTimestamp = new Date(Date.now() + accessData.expires_in * 1000 - TEN_MINUTES_MS).toISOString()
 
   const authenticatedUser = {
     accessToken: accessData.access_token,
     refreshToken: accessData.refresh_token,
-    expirationTime: expirationTime
+    renovationTimestamp
   }
 
   authenticatedUsers.add(accessData.refresh_token, authenticatedUser)
@@ -47,7 +47,7 @@ function isUserAuthenticated (refreshToken) {
 
 function provideAuthenticatedClient (refreshToken) {
   let authenticatedUser = authenticatedUsers.get(refreshToken)
-  if (Date.now() >= (new Date(authenticatedUser.expirationTime).getTime())) {
+  if (Date.now() >= (new Date(authenticatedUser.renovationTimestamp).getTime())) {
     const spotifyApiClient = new SpotifyClientWrapper(authenticatedUser)
     authenticatedUser = spotifyApiClient.refreshToken()
     authenticatedUsers.add(authenticatedUser.refreshToken, authenticatedUser)

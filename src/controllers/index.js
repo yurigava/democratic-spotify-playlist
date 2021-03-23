@@ -9,7 +9,7 @@ function login (req, res) {
 async function callback (req, res) {
   const authenticationData = await spotifyAuthenticationService.authenticate(req.query.code)
   res.cookie('DP_RFT', authenticationData.refreshToken)
-  res.send('You are successfully logged in.')
+  res.send({ message: 'You are successfully logged in' })
 }
 
 function register (req, res) {

@@ -18,7 +18,6 @@ function ensureSpotifyAuthentication (req, res, next) {
   if (!authenticationService.isUserAuthenticated(req.cookies.DP_RFT)) {
     throw new UserNotAuthenticatedError()
   }
-
   return next()
 }
 
