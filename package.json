@@ -26,8 +26,10 @@
   },
   "homepage": "https://github.com/mgkramar/democratic-spotify-playlist#readme",
   "dependencies": {
+    "cookie-parser": "^1.4.5",
     "express": "^4.17.1",
     "express-async-handler": "^1.1.4",
+    "nanoid": "^3.1.22",
     "spotify-web-api-node": "^5.0.2"
   },
   "devDependencies": {

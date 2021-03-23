@@ -27,13 +27,13 @@ function generateUserPlaylist (userPlaylist) {
         width: 60
       }
     ],
-    name: 'Rolê de Carnavrau',
+    name: userPlaylist.playlistId,
     owner: {
-      display_name: 'Yuri Vaz',
+      display_name: userPlaylist.userId,
       external_urls: {
-        spotify: 'https://open.spotify.com/user/22afk7qobpmwyvmxnmget773y'
+        spotify: 'https://open.spotify.com/user/xxxxxx'
       },
-      href: 'https://api.spotify.com/v1/users/22afk7qobpmwyvmxnmget773y',
+      href: 'https://api.spotify.com/v1/users/xxxxxxxx',
       id: userPlaylist.userId,
       type: 'user',
       uri: `spotify:user:${userPlaylist.userId}`
@@ -51,20 +51,13 @@ function generateUserPlaylist (userPlaylist) {
   }
 }
 
-function generateUserPlaylistsResponse (usersPlaylists) {
+function generateUserPlaylistsItem (usersPlaylists) {
   const playlistsItems = usersPlaylists.map(generateUserPlaylist)
 
-  return {
-    body: {
-      items: playlistsItems,
-      limit: 20,
-      next:
-        'https://api.spotify.com/v1/users/mkramar-us/playlists?offset=20&limit=20',
-      offset: 0,
-      previous: null,
-      total: 34
-    }
-  }
+  return playlistsItems
 }
 
-module.exports.generateUserPlaylistsResponse = generateUserPlaylistsResponse
+module.exports = {
+  generateUserPlaylistsItem,
+  generateUserPlaylist
+}

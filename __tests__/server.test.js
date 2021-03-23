@@ -2,10 +2,15 @@
 const request = require('supertest')
 const server = require('../src/server')
 const voteSkip = require('../src/services/voteSkipService')
-const spotifyService = require('../src/services/spotifyService')
-jest.mock('../src/services/spotifyService')
 
-const PlaylistDoesNotBelongToUserError = require('../src/errors/PlaylistDoesNotBelongToUserError')
+jest.mock('../src/services/playlistManagementService')
+const playlistManagementService = require('../src/services/playlistManagementService')
+
+jest.mock('../src/services/spotifyAuthenticationService.js')
+const spotifyAuthenticationService = require('../src/services/spotifyAuthenticationService.js')
+
+const ResourceDoesNotBelongToEntityError = require('../src/errors/ResourceDoesNotBelongToEntityError')
+const ResourceNotFoundError = require('../src/errors/ResourceNotFoundError')
 
 beforeEach(() => {
   jest.useFakeTimers()
@@ -20,7 +25,7 @@ afterAll(() => {
   server.close()
 })
 
-describe('Device registration', () => {
+describe('Device registration endpoints', () => {
   it('The fist time a device is registred should return 201', async () => {
     voteSkip.registerDevice = jest.fn(() => false)
 
@@ -44,7 +49,7 @@ describe('Device registration', () => {
   })
 })
 
-describe('Voteskip', () => {
+describe('Voteskip endpoints', () => {
   it('A registred device should get 200 when voteskiping', async () => {
     voteSkip.registerVote = jest.fn(() => true)
 
@@ -69,23 +74,33 @@ describe('Voteskip', () => {
   it.todo('An uregistred device should get 401 when voteskiping')
 })
 
-describe('Playlist', () => {
+describe('Playlist endpoints', () => {
+  beforeAll(() => {
+    jest.spyOn(spotifyAuthenticationService, 'isUserAuthenticated').mockReturnValue(true)
+  })
+
+  afterEach(() => {
+    jest.clearAllMocks()
+  })
+
   it('When a client requests to add a playlist that they do not own, an status code 400 should be returned', async () => {
-    spotifyService.managePlaylist = jest.fn(() => { throw new PlaylistDoesNotBelongToUserError('P1', 'U1') })
+    playlistManagementService.managePlaylist = jest.fn(() => { throw new ResourceDoesNotBelongToEntityError('P1', 'U1') })
 
     const res = await request(server)
       .post('/playlist')
+      .set('Cookie', ['DP_RFT=RT1'])
       .send({ playlistId: 'P1' })
 
     expect(res.statusCode).toBe(400)
-    expect(res.body.message).toBe('The given playlist [P1] does not belong to the user [U1]')
+    expect(res.body.message).toBe('The given resource [P1] does not belong to the entity [U1]')
   })
 
   it('When a client requests to add a playlist that they own for the first time, an status code 201 should be returned', async () => {
-    spotifyService.managePlaylist = jest.fn(() => true)
+    playlistManagementService.managePlaylist = jest.fn(() => true)
 
     const res = await request(server)
       .post('/playlist')
+      .set('Cookie', ['DP_RFT=RT1'])
       .send({ playlistId: 'P1' })
 
     expect(res.statusCode).toBe(201)
@@ -94,7 +109,79 @@ describe('Playlist', () => {
   it.todo('When a client requests to add a playlist that they own after the first time, an status code 200 should be returned')
 
   it.todo('When a client requests to remove a playlist that they own for the first time, an status code 200 should be returned')
-  it.todo('When a client requests to remove a playlist that they do not own, an status code 400 should be returned')
+
+  it('When a client requests to remove a playlist that they do not own, an status code 400 should be returned', async () => {
+    playlistManagementService.unmanagePlaylist = jest.fn(() => { throw new ResourceDoesNotBelongToEntityError('P1', 'U1') })
+
+    const res = await request(server)
+      .delete('/playlist')
+      .set('Cookie', ['DP_RFT=RT1'])
+      .send({ playlistId: 'P1' })
+
+    expect(res.statusCode).toBe(400)
+    expect(res.body.message).toBe('The given resource [P1] does not belong to the entity [U1]')
+  })
+
+  it('When a client requests to remove a playlist that they own, but that is not registred yet, an status code 404 should be returned', async () => {
+    playlistManagementService.unmanagePlaylist = jest.fn(() => { throw new ResourceNotFoundError('The given playlist [P1] was never added') })
+
+    const res = await request(server)
+      .delete('/playlist')
+      .set('Cookie', ['DP_RFT=RT1'])
+      .send({ playlistId: 'P1' })
+
+    expect(res.statusCode).toBe(404)
+    expect(res.body.message).toBe('Resource not found: The given playlist [P1] was never added')
+  })
 
   it.todo('When a client requests to remove a playlist that was never added, an status code 400 should be returned')
+})
+
+describe('Non authenticated users are not allowed to call protected endpoints', () => {
+  beforeAll(() => {
+    jest.spyOn(spotifyAuthenticationService, 'isUserAuthenticated').mockReturnValue(false)
+  })
+
+  afterEach(() => {
+    jest.clearAllMocks()
+  })
+
+  // TODO: To be substitued with it.each whenever VS Code jest runner supports it
+  it('When a client performs a post request to /playlist without being authenticated, an status code 401 should be returned', async () => {
+    const res = await request(server)
+      .post('/playlist')
+      .send()
+
+    expect(spotifyAuthenticationService.isUserAuthenticated).toBeCalledTimes(1)
+    expect(res.statusCode).toBe(401)
+    expect(res.body.message).toBe('The user is not authenticated. Please ensure to authenticate before performing this action')
+  })
+
+  it('When a client performs a delete request to /playlist without being authenticated, an status code 401 should be returned', async () => {
+    const res = await request(server)
+      .delete('/playlist')
+      .send()
+
+    expect(spotifyAuthenticationService.isUserAuthenticated).toBeCalledTimes(1)
+    expect(res.statusCode).toBe(401)
+    expect(res.body.message).toBe('The user is not authenticated. Please ensure to authenticate before performing this action')
+  })
+})
+
+describe('Authentication', () => {
+  it('When a client succesfully authenticates in spotify, a cookie should be returned', async () => {
+    // Arrange
+    const userLoginData = { refreshToken: 'RFT1', accessToken: 'ACT1', renovationTimestamp: expect.anything() }
+    jest.spyOn(spotifyAuthenticationService, 'authenticate').mockReturnValue(userLoginData)
+
+    // Act
+    const res = await request(server)
+      .get('/callback?code=123456')
+      .send()
+
+    expect(spotifyAuthenticationService.authenticate).toHaveBeenCalledWith('123456')
+    expect(res.statusCode).toBe(200)
+    expect(res.header['set-cookie'][0]).toContain('DP_RFT=RFT1')
+    expect(res.body.message).toBe('You are successfully logged in')
+  })
 })

@@ -1,26 +1,15 @@
 const voteSkipService = require('../services/voteSkipService')
-const spotifyService = require('../services/spotifyService')
+const spotifyAuthenticationService = require('../services/spotifyAuthenticationService')
+const spotifyPlaylistManagementService = require('../services/playlistManagementService')
 
 function login (req, res) {
-  res.redirect(spotifyService.createAuthorizeURL())
+  res.redirect(spotifyAuthenticationService.createAuthorizeURL())
 }
 
 async function callback (req, res) {
-  res.send('You are successfully logged in.')
-  await spotifyService.authenticate(req.query.code)
-}
-
-async function current (req, res) {
-  /* const current = await spotifyApi.getMyCurrentPlaybackState({
-  })
-    .catch((err) => {
-      console.log('Something went wrong!', err)
-    })
-  if (current) {
-    res.send(current.body)
-  } else {
-    res.send('You are not logged.')
-  } */
+  const authenticationData = await spotifyAuthenticationService.authenticate(req.query.code)
+  res.cookie('DP_RFT', authenticationData.refreshToken)
+  res.send({ message: 'You are successfully logged in' })
 }
 
 function register (req, res) {
@@ -45,16 +34,22 @@ function voteskip (req, res) {
 }
 
 async function addPlaylist (req, res) {
-  spotifyService.managePlaylist(req.body.playlistId)
+  await spotifyPlaylistManagementService.managePlaylist(req.body.playlistId, req.cookies.DP_RFT)
   res.statusCode = 201
   res.json({ message: 'Playlist Added' })
+}
+
+async function removePlaylist (req, res) {
+  await spotifyPlaylistManagementService.unmanagePlaylist(req.body.playlistId, req.cookies.DP_RFT)
+  res.statusCode = 200
+  res.json({ message: 'Playlist Removed' })
 }
 
 module.exports = {
   login,
   callback,
-  current,
   voteskip,
   register,
-  addPlaylist
+  addPlaylist,
+  removePlaylist
 }
