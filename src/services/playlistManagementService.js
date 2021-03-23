@@ -2,8 +2,9 @@ const spotifyAuthenticationService = require('./spotifyAuthenticationService')
 const playlistOrderingService = require('./playlistOrderingService')
 
 const ResourceDoesNotBelongToEntityError = require('../errors/ResourceDoesNotBelongToEntityError')
+const ResourceNotFoundError = require('../errors/ResourceNotFoundError')
 
-const managedPlaylists = {}
+const managedPlaylists = require('../repositories/managedPlaylists')
 
 async function orderPlaylist (playlistId, refreshToken) {
   const spotifyAuthenticatedClient = spotifyAuthenticationService.provideAuthenticatedClient(refreshToken)
@@ -32,15 +33,15 @@ async function managePlaylist (playlistId, refreshToken) {
   const timer = setInterval(function () {
     module.exports.orderPlaylist(playlistId, refreshToken)
   }, 30 * 1000)
-
-  managedPlaylists[playlistId] = timer
+  managedPlaylists.add(playlistId, timer)
 }
 
 async function unmanagePlaylist (playlistId, refreshToken) {
   await validatePlaylistBelongsToUser(playlistId, refreshToken)
+  await validatePlaylistIsRegistred(playlistId)
 
-  clearInterval(managedPlaylists[playlistId])
-  delete managedPlaylists[playlistId]
+  clearInterval(managedPlaylists.get(playlistId))
+  managedPlaylists.remove(playlistId)
 }
 
 async function validatePlaylistBelongsToUser (playlistId, refreshToken) {
@@ -50,6 +51,12 @@ async function validatePlaylistBelongsToUser (playlistId, refreshToken) {
   const playlistBelongsToUser = (await userPlaylists).some((playlist) => playlist.id === playlistId && playlist.owner.id === userId)
   if (!playlistBelongsToUser) {
     throw new ResourceDoesNotBelongToEntityError(playlistId, userId)
+  }
+}
+
+async function validatePlaylistIsRegistred (playlistId) {
+  if (!managedPlaylists.get(playlistId)) {
+    throw new ResourceNotFoundError(`The given playlist [${playlistId}] was never added`)
   }
 }
 

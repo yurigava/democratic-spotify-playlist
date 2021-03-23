@@ -43,7 +43,6 @@ describe('Client provision', () => {
     const mockRefreshToken = jest.fn().mockImplementation(() => {
       return { refreshToken: 'RFT1', accessToken: 'ACT2', expirationTime: REFRESHED_EXPIRATION_TIMESTAMP }
     })
-
     SpotifyClientWrapper.mockImplementation(() => {
       return { refreshToken: mockRefreshToken }
     })

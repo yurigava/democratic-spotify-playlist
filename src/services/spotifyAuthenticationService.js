@@ -41,6 +41,10 @@ function createAuthorizeURL () {
   return spotifyApi.createAuthorizeURL(scopes, state)
 }
 
+function isUserAuthenticated (refreshToken) {
+  return !!authenticatedUsers.get(refreshToken)
+}
+
 function provideAuthenticatedClient (refreshToken) {
   let authenticatedUser = authenticatedUsers.get(refreshToken)
   if (Date.now() >= (new Date(authenticatedUser.expirationTime).getTime())) {
@@ -54,5 +58,6 @@ function provideAuthenticatedClient (refreshToken) {
 module.exports = {
   authenticate,
   createAuthorizeURL,
-  provideAuthenticatedClient
+  provideAuthenticatedClient,
+  isUserAuthenticated
 }
