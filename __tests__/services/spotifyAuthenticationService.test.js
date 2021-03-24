@@ -36,6 +36,26 @@ describe('Authentication', () => {
     expect(mockAuthenticate).toHaveBeenCalledWith('C1')
     expect(authenticatedUsers.add).toHaveBeenCalledWith('RFT1', expectedUserLoginData)
   })
+
+  it('isUserAuthenticated should return true if user authenticated before', async () => {
+    jest.spyOn(authenticatedUsers, 'get').mockReturnValue({ accessToken: 'ACT1', refreshToken: 'RFT1', renovationTimestamp: 3600 })
+
+    // Act
+    const isUserAuthenticated = spotifyAuthenticationService.isUserAuthenticated('U1')
+
+    // Assert
+    expect(isUserAuthenticated).toBe(true)
+  })
+
+  it('isUserAuthenticated should return false if user was not authenticated before', async () => {
+    jest.spyOn(authenticatedUsers, 'get').mockReturnValue(undefined)
+
+    // Act
+    const isUserAuthenticated = spotifyAuthenticationService.isUserAuthenticated('U1')
+
+    // Assert
+    expect(isUserAuthenticated).toBe(false)
+  })
 })
 
 describe('Client provision', () => {
