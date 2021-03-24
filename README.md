@@ -1,4 +1,6 @@
-[![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com)
+[![JavaScript Style Guide](https://img.shields.io/badge/code_style-standard-brightgreen.svg)](https://standardjs.com) [![codecov](https://codecov.io/gh/mgkramar/democratic-spotify-playlist-reorderer-back-end/branch/master/graph/badge.svg?token=11N5G337OB)](https://codecov.io/gh/mgkramar/democratic-spotify-playlist-reorderer-back-end) [![HitCount](http://hits.dwyl.com/mgkramar/democratic-spotify-playlist-reorderer-back-end.svg)](http://hits.dwyl.com/mgkramar/democratic-spotify-playlist-reorderer-back-end)
+
+
 
 # Democratic Spotify Playlist Back End
 API to Reorder Collaborative Playlist so each contributor has one song per cycle

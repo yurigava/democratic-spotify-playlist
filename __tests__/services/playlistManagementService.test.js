@@ -4,7 +4,7 @@ const playlistManagementService = require('../../src/services/playlistManagement
 jest.mock('../../src/services/playlistOrderingService')
 const mockPlaylistOrderingService = require('../../src/services/playlistOrderingService')
 
-jest.mock('../../src/clients/spotifyClientWrapper')
+jest.mock('../../src/clients/SpotifyClientWrapper')
 const MockSpotifyClientWrapper = require('../../src/clients/SpotifyClientWrapper')
 
 const mockProvideAuthentication = jest.fn().mockImplementation(() => new MockSpotifyClientWrapper())
@@ -14,7 +14,7 @@ mockSpotifyAuthenticationService.provideAuthenticatedClient = mockProvideAuthent
 jest.mock('../../src/repositories/managedPlaylists.js')
 const mockManagedPlaylist = require('../../src/repositories/managedPlaylists.js')
 
-const playlistItemsFixture = require('../../__fixtures__/playListItems.fixture')
+const playlistItemsFixture = require('../../__fixtures__/playlistItems.fixture')
 const playlistFixture = require('../../__fixtures__/playlist.fixture')
 const userPlaylistsFixture = require('../../__fixtures__/userPlaylists.fixture')
 const currentUserProfileFixture = require('../../__fixtures__/currentUserProfile.fixture')

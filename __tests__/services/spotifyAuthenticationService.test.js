@@ -1,5 +1,5 @@
 /* eslint-env jest */
-jest.mock('../../src/clients/spotifyClientWrapper')
+jest.mock('../../src/clients/SpotifyClientWrapper')
 const SpotifyClientWrapper = require('../../src/clients/SpotifyClientWrapper')
 
 jest.mock('../../src/repositories/authenticatedUsers')
