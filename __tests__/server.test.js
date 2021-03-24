@@ -108,7 +108,15 @@ describe('Playlist endpoints', () => {
 
   it.todo('When a client requests to add a playlist that they own after the first time, an status code 200 should be returned')
 
-  it.todo('When a client requests to remove a playlist that they own for the first time, an status code 200 should be returned')
+  it('When a client requests to remove a playlist that they own, an status code 200 should be returned', async () => {
+    const res = await request(server)
+      .delete('/playlist')
+      .set('Cookie', ['DP_RFT=RT1'])
+      .send({ playlistId: 'P1' })
+
+    expect(res.statusCode).toBe(200)
+    expect(res.body.message).toBe('Playlist Removed')
+  })
 
   it('When a client requests to remove a playlist that they do not own, an status code 400 should be returned', async () => {
     playlistManagementService.unmanagePlaylist = jest.fn(() => { throw new ResourceDoesNotBelongToEntityError('P1', 'U1') })
