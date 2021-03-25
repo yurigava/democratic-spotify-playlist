@@ -1,15 +1,13 @@
 const express = require('express')
-const cookies = require('cookie-parser')
+const cookieParser = require('cookie-parser')
 const app = express()
 const routes = require('./routes')
+const errorHandler = require('./middleware/errorMiddleware')
 
 app.use(express.json())
-app.use(cookies())
+app.use(cookieParser())
 app.use('/', routes)
-app.use(function (err, req, res, next) {
-  console.log(err.stack)
-  res.status(err.code).send({ message: err.message })
-})
+app.use(errorHandler)
 
 const PORT = 8080
 
