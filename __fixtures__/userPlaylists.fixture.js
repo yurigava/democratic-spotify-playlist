@@ -52,9 +52,7 @@ function generateUserPlaylist (userPlaylist) {
 }
 
 function generateUserPlaylistsItem (usersPlaylists) {
-  const playlistsItems = usersPlaylists.map(generateUserPlaylist)
-
-  return playlistsItems
+  return usersPlaylists.map(generateUserPlaylist)
 }
 
 module.exports = {

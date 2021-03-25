@@ -180,8 +180,7 @@ describe('Playlist that does not belong to the user', () => {
     }
     setupSpotifyClientWrapperMock(mocks)
 
-    // Act
-    // Assert
+    // Act - Assert
     await expect(playlistManagementService.managePlaylist('NP1'))
       .rejects
       .toThrow(ResourceDoesNotBelongToEntityError)
