@@ -188,8 +188,7 @@ describe('Authentication', () => {
       .send()
 
     expect(spotifyAuthenticationService.authenticate).toHaveBeenCalledWith('123456')
-    expect(res.statusCode).toBe(200)
+    expect(res.statusCode).toBe(302)
     expect(res.header['set-cookie'][0]).toContain('DP_RFT=RFT1')
-    expect(res.body.message).toBe('You are successfully logged in')
   })
 })
