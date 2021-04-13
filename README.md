@@ -36,7 +36,13 @@ Before running the app, it is necessary to set some enviroment variables regardi
 
 
 ```
-SPOTIFY_CALLBACK=''
+// Callback endpoint that will be called after successful authentication on Spotify
+SPOTIFY_CALLBACK=http://localhost:8080/callback
+
+// The front-end base URL
+WEB_APP_BASE_URL=http://localhost:3000
+
+// Spotify ID and Secret
 SPOTIFY_CLIENT_ID=''
 SPOTIFY_CLIENT_SECRET=''
 ``` 
@@ -47,7 +53,7 @@ After configuring the enviroment variables, run:
  npm start
 ``` 
 
-Once the server is up and running you need to authenticate to spotify via `http://localhost:8080/secret-login`. Once authenticated , one can perform a POST call like the one below to start having its colaborative playlist managed. Notice that the playlist needs to belong to the user that is currently authenticated
+Once the server is up and running you need to authenticate to spotify via `/secret-login`. Once authenticated , one can perform a POST call like the one below to start having its colaborative playlist managed. Notice that the playlist needs to belong to the user that is currently authenticated
 
 ```
 Endpoint: http://localhost:8080/playlist
@@ -58,4 +64,6 @@ Body:
 }
 ```
 
+## Acknowledgments
 
+This project was based in [@yurigava's](https://github.com/yurigava/democratic-spotify-playlist) ideia and is a fork from  [his project](https://github.com/yurigava/democratic-spotify-playlist)
