@@ -24,7 +24,7 @@ async function authenticate (code) {
   const spotifyApi = new SpotifyClientWrapper(credentials)
   const accessData = await spotifyApi.authenticate(code)
 
-  const renovationTimestamp = new Date(Date.now() + accessData.expires_in * 1000 - TEN_MINUTES_MS).toISOString()
+  const renovationTimestamp = calculateTokenRenovationTime(accessData.expires_in)
 
   const authenticatedUser = {
     accessToken: accessData.access_token,
@@ -36,6 +36,10 @@ async function authenticate (code) {
   return authenticatedUser
 }
 
+function calculateTokenRenovationTime (expiresIn) {
+  return new Date(Date.now() + expiresIn * 1000 - TEN_MINUTES_MS).toISOString()
+}
+
 function createAuthorizeURL () {
   const spotifyApi = new SpotifyClientWrapper(credentials)
   return spotifyApi.createAuthorizeURL(scopes, state)
@@ -45,11 +49,13 @@ function isUserAuthenticated (refreshToken) {
   return !!authenticatedUsers.get(refreshToken)
 }
 
-function provideAuthenticatedClient (refreshToken) {
-  let authenticatedUser = authenticatedUsers.get(refreshToken)
+async function provideAuthenticatedClient (refreshToken) {
+  const authenticatedUser = authenticatedUsers.get(refreshToken)
   if (Date.now() >= (new Date(authenticatedUser.renovationTimestamp).getTime())) {
-    const spotifyApiClient = new SpotifyClientWrapper(authenticatedUser)
-    authenticatedUser = spotifyApiClient.refreshToken()
+    const spotifyApiClient = new SpotifyClientWrapper({ ...credentials, refreshToken: authenticatedUser.refreshToken })
+    const newTokenInfo = await spotifyApiClient.refreshToken()
+    authenticatedUser.accessToken = newTokenInfo.access_token
+    authenticatedUser.renovationTimestamp = calculateTokenRenovationTime(newTokenInfo.expires_in)
     authenticatedUsers.add(authenticatedUser.refreshToken, authenticatedUser)
   }
   return new SpotifyClientWrapper(authenticatedUser)

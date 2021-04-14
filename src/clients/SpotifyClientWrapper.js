@@ -80,7 +80,11 @@ class SpotifyClientWrapper {
   }
 
   refreshToken () {
-    // TBI
+    return this.spotifyApi.refreshAccessToken()
+      .then(data => data?.body ?? {})
+      .catch(err => {
+        console.error(`Error while refreshing token!\nError:${err}`)
+      })
   }
 }
 

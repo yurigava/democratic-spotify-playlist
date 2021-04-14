@@ -60,9 +60,15 @@ describe('Authentication', () => {
 
 describe('Client provision', () => {
   const EXPIRATION_TIMESTAMP = '2020-01-01T00:50:00.000Z'
-  const REFRESHED_EXPIRATION_TIMESTAMP = '2020-01-01T01:50:00.000Z'
+  const REFRESHED_EXPIRATION_TIMESTAMP = '2020-01-01T01:40:00.000Z'
   const JUST_BEFORE_TOKEN_RENOVATION_TIMESTAMP = '2020-01-01T00:49:59.000Z'
   const USER_AUTHENTICATION_INFO = { refreshToken: 'RFT1', accessToken: 'ACT1', renovationTimestamp: EXPIRATION_TIMESTAMP }
+  const USER_REFRESH_INFO = {
+    refreshToken: 'RFT1',
+    clientId: undefined,
+    clientSecret: undefined,
+    redirectUri: undefined
+  }
   const REFRESHED_AUTHENTICATION_INFO = { refreshToken: 'RFT1', accessToken: 'ACT2', renovationTimestamp: REFRESHED_EXPIRATION_TIMESTAMP }
 
   beforeEach(() => {
@@ -88,22 +94,21 @@ describe('Client provision', () => {
 
   it('provideAuthenticatedClient should return a client with new access token and refresh token when the token is about to expire', async () => {
     // Arrange
-
     jest.spyOn(global.Date, 'now').mockReturnValue(new Date(EXPIRATION_TIMESTAMP).getTime())
 
     const mockRefreshToken = jest.fn().mockImplementation(() => {
-      return { refreshToken: 'RFT1', accessToken: 'ACT2', renovationTimestamp: REFRESHED_EXPIRATION_TIMESTAMP }
+      return { access_token: 'ACT2', expires_in: 3600 }
     })
     SpotifyClientWrapper.mockImplementation(() => {
       return { refreshToken: mockRefreshToken }
     })
 
     // Act
-    spotifyAuthenticationService.provideAuthenticatedClient('RFT1')
+    await spotifyAuthenticationService.provideAuthenticatedClient('RFT1')
 
     // Assert
     expect(SpotifyClientWrapper).toHaveBeenCalledTimes(2)
-    expect(SpotifyClientWrapper).toHaveBeenNthCalledWith(1, USER_AUTHENTICATION_INFO)
+    expect(SpotifyClientWrapper).toHaveBeenNthCalledWith(1, USER_REFRESH_INFO)
     expect(SpotifyClientWrapper).toHaveBeenNthCalledWith(2, REFRESHED_AUTHENTICATION_INFO)
     expect(mockRefreshToken).toHaveBeenCalledTimes(1)
   })

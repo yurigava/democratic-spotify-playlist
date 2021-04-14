@@ -7,7 +7,7 @@ const ResourceNotFoundError = require('../errors/ResourceNotFoundError')
 const managedPlaylists = require('../repositories/managedPlaylists')
 
 async function orderPlaylist (playlistId, refreshToken) {
-  const spotifyAuthenticatedClient = spotifyAuthenticationService.provideAuthenticatedClient(refreshToken)
+  const spotifyAuthenticatedClient = await spotifyAuthenticationService.provideAuthenticatedClient(refreshToken)
   let currenPlaylist = spotifyAuthenticatedClient.retrievePlaylistTracks(playlistId)
   let currentTrackId = spotifyAuthenticatedClient.retrieveCurrentTrackId()
   const playlistSnapshotId = spotifyAuthenticatedClient.retrievePlaylistSnapshotId(playlistId);
@@ -45,7 +45,7 @@ async function unmanagePlaylist (playlistId, refreshToken) {
 }
 
 async function validatePlaylistBelongsToUser (playlistId, refreshToken) {
-  const spotifyAuthenticatedClient = spotifyAuthenticationService.provideAuthenticatedClient(refreshToken)
+  const spotifyAuthenticatedClient = await spotifyAuthenticationService.provideAuthenticatedClient(refreshToken)
   const userPlaylists = spotifyAuthenticatedClient.retrieveUserPlaylists()
   const userId = (await spotifyAuthenticatedClient.retrieveCurrentUserProfile()).id
   const playlistBelongsToUser = (await userPlaylists).some((playlist) => playlist.id === playlistId && playlist.owner.id === userId)
