@@ -1,7 +1,7 @@
 function generateUserPlaylist (userPlaylist) {
   return {
-    collaborative: true,
-    description: '',
+    collaborative: userPlaylist.collaborative ?? true,
+    description: userPlaylist.name ?? '',
     external_urls: {
       spotify: 'https://open.spotify.com/playlist/4RgMHPUyn3vMxPRtuLHMlp'
     },
@@ -39,7 +39,7 @@ function generateUserPlaylist (userPlaylist) {
       uri: `spotify:user:${userPlaylist.userId}`
     },
     primary_color: null,
-    public: false,
+    public: userPlaylist.public ?? false,
     snapshot_id: 'MTMyMSxhYTdjY2QzMmIxOGRlYTAwMjUyMDY3NjA2OTMzYTVhYzcyZjkyZDY0',
     tracks: {
       href:

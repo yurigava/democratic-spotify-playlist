@@ -64,7 +64,7 @@ class SpotifyClientWrapper {
   }
 
   retrieveUserPlaylists () {
-    return this.spotifyApi.getUserPlaylists()
+    return this.spotifyApi.getUserPlaylists({ limit: 50 })
       .then(data => data.body?.items ?? [])
       .catch(err => {
         console.error(`Error while retrieving User Playlists!\nError:${err}`)

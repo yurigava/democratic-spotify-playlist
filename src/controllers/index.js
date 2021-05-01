@@ -1,6 +1,9 @@
 const voteSkipService = require('../services/voteSkipService')
 const spotifyAuthenticationService = require('../services/spotifyAuthenticationService')
 const spotifyPlaylistManagementService = require('../services/playlistManagementService')
+const currentUserProfileService = require('../services/currentUserProfileService')
+
+// TODO: Have multiple controllers
 
 function login (req, res) {
   res.redirect(spotifyAuthenticationService.createAuthorizeURL())
@@ -32,7 +35,7 @@ function voteskip (req, res) {
 
   res.send()
 }
-
+// TODO cookie as first argument
 async function addPlaylist (req, res) {
   await spotifyPlaylistManagementService.managePlaylist(req.body.playlistId, req.cookies.DP_RFT)
   res.statusCode = 201
@@ -45,11 +48,25 @@ async function removePlaylist (req, res) {
   res.json({ message: 'Playlist Removed' })
 }
 
+function getManagedPlaylistsIds (req, res) {
+  const managedPlaylists = spotifyPlaylistManagementService.getManagedPlaylistsIds(req.cookies.DP_RFT)
+  res.statusCode = 200
+  res.json(managedPlaylists)
+}
+
+async function getMyPlaylists (req, res) {
+  const userPlaylists = await currentUserProfileService.getPlaylists(req.query, req.cookies.DP_RFT)
+  res.statusCode = 200
+  res.json(userPlaylists)
+}
+
 module.exports = {
   login,
   callback,
   voteskip,
   register,
   addPlaylist,
-  removePlaylist
+  removePlaylist,
+  getManagedPlaylistsIds,
+  getMyPlaylists
 }

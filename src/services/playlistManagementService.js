@@ -27,13 +27,17 @@ async function orderPlaylist (playlistId, refreshToken) {
   }
 }
 
+function getManagedPlaylistsIds (refreshToken) {
+  return { playlistIds: managedPlaylists.getAllPlaylistIds(refreshToken) }
+}
+
 async function managePlaylist (playlistId, refreshToken) {
   await validatePlaylistBelongsToUser(playlistId, refreshToken)
 
   const timer = setInterval(function () {
     module.exports.orderPlaylist(playlistId, refreshToken)
   }, 30 * 1000)
-  managedPlaylists.add(playlistId, timer)
+  managedPlaylists.add(refreshToken, { playlistId, timer })
 }
 
 async function unmanagePlaylist (playlistId, refreshToken) {
@@ -63,5 +67,6 @@ async function validatePlaylistIsRegistred (playlistId) {
 module.exports = {
   orderPlaylist,
   managePlaylist,
-  unmanagePlaylist
+  unmanagePlaylist,
+  getManagedPlaylistsIds
 }

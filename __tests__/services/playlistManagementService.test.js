@@ -244,4 +244,15 @@ describe('Playlist that belongs to the user', () => {
       .toThrow(ResourceNotFoundError)
     expect(setInterval).toHaveBeenCalledTimes(0)
   })
+
+  it('getManagedPlaylists should return all playlists that the user added to be ordered', async () => {
+    // Arrange
+    jest.spyOn(mockManagedPlaylist, 'getAllPlaylistIds').mockReturnValue(['P1', 'P2', 'P3'])
+
+    // Act
+    const playlists = await playlistManagementService.getManagedPlaylistsIds('RFT1')
+
+    // Assert
+    expect(playlists).toStrictEqual({ playlistIds: ['P1', 'P2', 'P3'] })
+  })
 })

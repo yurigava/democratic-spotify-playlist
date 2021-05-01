@@ -3,6 +3,9 @@ const request = require('supertest')
 const server = require('../src/server')
 const voteSkip = require('../src/services/voteSkipService')
 
+jest.mock('../src/services/currentUserProfileService')
+const currentUserProfileService = require('../src/services/currentUserProfileService')
+
 jest.mock('../src/services/playlistManagementService')
 const playlistManagementService = require('../src/services/playlistManagementService')
 
@@ -11,6 +14,7 @@ const spotifyAuthenticationService = require('../src/services/spotifyAuthenticat
 
 const ResourceDoesNotBelongToEntityError = require('../src/errors/ResourceDoesNotBelongToEntityError')
 const ResourceNotFoundError = require('../src/errors/ResourceNotFoundError')
+const readFixtureJson = require('../__fixtures__/utils/readFixtureJson')
 
 beforeEach(() => {
   jest.useFakeTimers()
@@ -74,7 +78,7 @@ describe('Voteskip endpoints', () => {
   it.todo('An uregistred device should get 401 when voteskiping')
 })
 
-describe('Playlist endpoints', () => {
+describe('Playlist ordering management endpoints', () => {
   beforeAll(() => {
     jest.spyOn(spotifyAuthenticationService, 'isUserAuthenticated').mockReturnValue(true)
   })
@@ -142,7 +146,70 @@ describe('Playlist endpoints', () => {
     expect(res.body.message).toBe('Resource not found: The given playlist [P1] was never added')
   })
 
+  it('When a client requests to remove a playlist that they own, but that is not registred yet, an status code 404 should be returned', async () => {
+    playlistManagementService.unmanagePlaylist = jest.fn(() => { throw new ResourceNotFoundError('The given playlist [P1] was never added') })
+
+    const res = await request(server)
+      .delete('/playlist')
+      .set('Cookie', ['DP_RFT=RT1'])
+      .send({ playlistId: 'P1' })
+
+    expect(res.statusCode).toBe(404)
+    expect(res.body.message).toBe('Resource not found: The given playlist [P1] was never added')
+  })
+
+  it('When a client requests the playlists that they have registred, status code 200 should be returned', async () => {
+    const payload = { playlistIds: ['P1'] }
+    playlistManagementService.getManagedPlaylistsIds = jest.fn(() => payload)
+
+    const res = await request(server)
+      .get('/playlist')
+      .set('Cookie', ['DP_RFT=RT1'])
+      .send()
+
+    expect(res.statusCode).toBe(200)
+    expect(res.body).toStrictEqual(payload)
+  })
+
   it.todo('When a client requests to remove a playlist that was never added, an status code 400 should be returned')
+})
+
+describe('Spotify playlist endpoints', () => {
+  beforeAll(() => {
+    jest.spyOn(spotifyAuthenticationService, 'isUserAuthenticated').mockReturnValue(true)
+  })
+
+  afterEach(() => {
+    jest.clearAllMocks()
+  })
+
+  it('When a client requests to retrieve all collaborative playlists pertaining to the user, status code 200 should be returned', async () => {
+    const USER_PLAYLISTS = readFixtureJson('userPlaylistsGET.json')
+    currentUserProfileService.getPlaylists = jest.fn(() => USER_PLAYLISTS)
+
+    const res = await request(server)
+      .get('/me/playlist/?collaborative=true&mine=true')
+      .set('Cookie', ['DP_RFT=RT1'])
+      .send()
+
+    expect(currentUserProfileService.getPlaylists).toHaveBeenCalledWith({ collaborative: 'true', mine: 'true' }, 'RT1')
+    expect(res.statusCode).toBe(200)
+    expect(res.body).toStrictEqual(USER_PLAYLISTS)
+  })
+
+  it('When a client requests to retrieve all user playlists, status code 200 should be returned', async () => {
+    const USER_PLAYLISTS = readFixtureJson('userPlaylistsGET.json')
+    currentUserProfileService.getPlaylists = jest.fn(() => USER_PLAYLISTS)
+
+    const res = await request(server)
+      .get('/me/playlist/')
+      .set('Cookie', ['DP_RFT=RT1'])
+      .send()
+
+    expect(currentUserProfileService.getPlaylists).toHaveBeenCalledWith({ }, 'RT1')
+    expect(res.statusCode).toBe(200)
+    expect(res.body).toStrictEqual(USER_PLAYLISTS)
+  })
 })
 
 describe('Non authenticated users are not allowed to call protected endpoints', () => {

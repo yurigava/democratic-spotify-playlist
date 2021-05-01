@@ -2,23 +2,33 @@
 const managedPlaylists = {}
 const PersistenceError = require('../errors/PersistenceError')
 
-function add (playlistId, timer) {
-  if (typeof playlistId !== 'string') {
+function add (refreshToken, item) {
+  if (typeof refreshToken !== 'string') {
     throw new PersistenceError(`Unable to persist a playlist timer with playlistId different than a string. Instead it was [${typeof playlistId}]`)
   }
-  managedPlaylists[playlistId] = timer
+
+  if (!managedPlaylists[refreshToken]) {
+    managedPlaylists[refreshToken] = new Map()
+  }
+
+  managedPlaylists[refreshToken].set(item.playlistId, item.timer)
 }
 
-function get (playlistId) {
-  return managedPlaylists[playlistId]
+function get (refreshToken, playlistId) {
+  return managedPlaylists[refreshToken]?.get(playlistId) ?? undefined
 }
 
-function remove (playlistId) {
-  delete managedPlaylists[playlistId]
+function getAllPlaylistIds (refreshToken) {
+  return Array.from(managedPlaylists[refreshToken]?.keys() ?? [])
+}
+
+function remove (refreshToken, playlistId) {
+  delete managedPlaylists[refreshToken].delete(playlistId)
 }
 
 module.exports = {
   add,
   get,
-  remove
+  remove,
+  getAllPlaylistIds
 }
