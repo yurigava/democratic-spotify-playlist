@@ -66,4 +66,4 @@ Body:
 
 ## Acknowledgments
 
-This project was based in [@yurigava's](https://github.com/yurigava/democratic-spotify-playlist) ideia and is a fork from  [his project](https://github.com/yurigava/democratic-spotify-playlist)
+This project was created by me and completely refactored by [@mgkramar](https://github.com/mgkramar)
