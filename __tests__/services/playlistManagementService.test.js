@@ -4,6 +4,9 @@ const playlistManagementService = require('../../src/services/playlistManagement
 jest.mock('../../src/services/playlistOrderingService')
 const mockPlaylistOrderingService = require('../../src/services/playlistOrderingService')
 
+jest.mock('../../src/services/playlistMovementCalculator')
+const mockPlaylistMovementCalculator = require('../../src/services/playlistMovementCalculator')
+
 jest.mock('../../src/clients/SpotifyClientWrapper')
 const MockSpotifyClientWrapper = require('../../src/clients/SpotifyClientWrapper')
 
@@ -37,8 +40,8 @@ function setupSpotifyClientWrapperMock (mocks) {
   })
 }
 
-describe('Spotify Reorder Endpoint should be called once for each unplayed track whose position in the reordered playlist differs from the current playlist', () => {
-  it('Spotify Reorder Endpoint should not be called for a playlist [A1*]', async () => {
+describe('Spotify Reorder Endpoint should be called once for each calculated movement', () => {
+  it('Spotify Reorder Endpoint should not be called for a playlist that leads to no movement', async () => {
     // Arrange
     const playlistItems = [{ trackId: 'A1' }]
     const playlistTracks = playlistFixture.generatePlaylist(playlistItemsFixture.generatePlaylistItems(playlistItems))
@@ -50,7 +53,8 @@ describe('Spotify Reorder Endpoint should be called once for each unplayed track
     }
     setupSpotifyClientWrapperMock(mocks)
 
-    jest.spyOn(mockPlaylistOrderingService, 'reorder').mockImplementation(() => ['A1'])
+    jest.spyOn(mockPlaylistOrderingService, 'reorderPlaylist').mockImplementation(() => ['A1'])
+    jest.spyOn(mockPlaylistMovementCalculator, 'getPlaylistReorderMovements').mockImplementation(() => [])
     // Act
     await playlistManagementService.orderPlaylist('P1')
 
@@ -58,73 +62,56 @@ describe('Spotify Reorder Endpoint should be called once for each unplayed track
     expect(mocks.reorderTracksInPlaylist).toHaveBeenCalledTimes(0)
   })
 
-  it('Spotify Reorder Tracks In Playlist should be called 2 times for a playlist [A1*, A2, B1]', async () => {
+  it('Spotify Reorder Tracks In Playlist should be called for each calculated movement - 1 movement', async () => {
     // Arrange
     const playlistItems = [{ trackId: 'A1' }, { trackId: 'A2' }, { trackId: 'B1' }]
     const playlistTracks = playlistFixture.generatePlaylist(playlistItemsFixture.generatePlaylistItems(playlistItems))
+    const reorderedItems = [playlistTracks.items[0], playlistTracks.items[2], playlistTracks.items[1]]
     const mocks = {
       retrievePlaylistTracks: jest.fn().mockResolvedValue(playlistTracks),
       retrieveCurrentTrackId: jest.fn().mockResolvedValue('A1'),
-      retrievePlaylistSnapshotId: jest.fn().mockResolvedValue('S1'),
+      retrievePlaylistSnapshotId: jest.fn().mockResolvedValueOnce('S1'),
       reorderTracksInPlaylist: jest.fn()
     }
     setupSpotifyClientWrapperMock(mocks)
-    jest.spyOn(mockPlaylistOrderingService, 'reorder').mockImplementation(() => [playlistTracks.items[0], playlistTracks.items[2], playlistTracks.items[1]])
+    jest.spyOn(mockPlaylistOrderingService, 'reorderPlaylist').mockImplementation(() => reorderedItems)
+    jest.spyOn(mockPlaylistMovementCalculator, 'getPlaylistReorderMovements').mockImplementation(() => [{ from: 2, to: 1 }])
 
     // Act
     await playlistManagementService.orderPlaylist('P1')
 
     // Assert
-    expect(mockPlaylistOrderingService.reorder).toHaveBeenCalledWith(playlistTracks.items, playlistTracks.items[0])
-    expect(mocks.reorderTracksInPlaylist).toHaveBeenCalledTimes(2)
-    expect(mocks.reorderTracksInPlaylist).toHaveBeenNthCalledWith(1, 'P1', 1, 2, { snapshot_id: 'S1' })
-    expect(mocks.reorderTracksInPlaylist).toHaveBeenNthCalledWith(2, 'P1', 2, 1, { snapshot_id: 'S1' })
+    expect(mockPlaylistOrderingService.reorderPlaylist).toHaveBeenCalledWith(playlistTracks.items, playlistTracks.items[0])
+    expect(mockPlaylistMovementCalculator.getPlaylistReorderMovements).toHaveBeenCalledWith(playlistTracks.items, reorderedItems)
+    expect(mocks.reorderTracksInPlaylist).toHaveBeenCalledTimes(1)
+    expect(mocks.reorderTracksInPlaylist).toHaveBeenNthCalledWith(1, 'P1', 2, 1, { snapshot_id: 'S1' })
   })
 
-  it('Spotify Reorder Tracks In Playlist should be called 2 times for a playlist [A1, *A2, B1, C1, A3]', async () => {
+  it('Spotify Reorder Tracks In Playlist should be called for each calculated movement - 2 movements', async () => {
     // Arrange
-    const playlistItems = [{ trackId: 'A1' }, { trackId: 'A2' }, { trackId: 'B1' }, { trackId: 'C1' }, { trackId: 'A3' }]
+    const playlistItems = [{ trackId: 'A1' }, { trackId: 'A2' }, { trackId: 'B1' }, { trackId: 'A3' }, { trackId: 'B2' }]
     const playlistTracks = playlistFixture.generatePlaylist(playlistItemsFixture.generatePlaylistItems(playlistItems))
+    const reorderedItems = [playlistTracks.items[0], playlistTracks.items[2], playlistTracks.items[1], playlistTracks.items[4], playlistTracks.items[3]]
     const mocks = {
       retrievePlaylistTracks: jest.fn().mockResolvedValue(playlistTracks),
-      retrieveCurrentTrackId: jest.fn().mockResolvedValue('A2'),
-      retrievePlaylistSnapshotId: jest.fn().mockResolvedValue('S1'),
-      reorderTracksInPlaylist: jest.fn()
+      retrieveCurrentTrackId: jest.fn().mockResolvedValue('A1'),
+      retrievePlaylistSnapshotId: jest.fn().mockResolvedValueOnce('S1'),
+      reorderTracksInPlaylist: jest.fn().mockResolvedValue('S2')
     }
-    setupSpotifyClientWrapperMock(mocks)
 
-    jest.spyOn(mockPlaylistOrderingService, 'reorder').mockImplementation(() => [playlistTracks.items[0], playlistTracks.items[1], playlistTracks.items[4], playlistTracks.items[3], playlistTracks.items[2]])
+    setupSpotifyClientWrapperMock(mocks)
+    jest.spyOn(mockPlaylistOrderingService, 'reorderPlaylist').mockImplementation(() => reorderedItems)
+    jest.spyOn(mockPlaylistMovementCalculator, 'getPlaylistReorderMovements').mockImplementation(() => [{ from: 2, to: 1 }, { from: 4, to: 3 }])
 
     // Act
     await playlistManagementService.orderPlaylist('P1')
 
     // Assert
-    expect(mockPlaylistOrderingService.reorder).toHaveBeenCalledWith(playlistTracks.items, playlistTracks.items[1])
+    expect(mockPlaylistOrderingService.reorderPlaylist).toHaveBeenCalledWith(playlistTracks.items, playlistTracks.items[0])
+    expect(mockPlaylistMovementCalculator.getPlaylistReorderMovements).toHaveBeenCalledWith(playlistTracks.items, reorderedItems)
     expect(mocks.reorderTracksInPlaylist).toHaveBeenCalledTimes(2)
-    expect(mocks.reorderTracksInPlaylist).toHaveBeenNthCalledWith(1, 'P1', 2, 4, { snapshot_id: 'S1' })
-    expect(mocks.reorderTracksInPlaylist).toHaveBeenNthCalledWith(2, 'P1', 4, 2, { snapshot_id: 'S1' })
-  })
-
-  it('Spotify Reorder Endpoint should not be called for any playlist if the currently playing song of the user is not in the playlist', async () => {
-    // Arrange
-    const playlistItems = [{ trackId: 'A1' }, { trackId: 'A2' }, { trackId: 'B1' }, { trackId: 'C1' }, { trackId: 'A3' }]
-    const playlistTracks = playlistFixture.generatePlaylist(playlistItemsFixture.generatePlaylistItems(playlistItems))
-    const mocks = {
-      retrievePlaylistTracks: jest.fn().mockResolvedValue(playlistTracks),
-      retrieveCurrentTrackId: jest.fn().mockResolvedValue('NP1'),
-      retrievePlaylistSnapshotId: jest.fn().mockResolvedValue('S1'),
-      reorderTracksInPlaylist: jest.fn()
-    }
-    setupSpotifyClientWrapperMock(mocks)
-
-    jest.spyOn(mockPlaylistOrderingService, 'reorder').mockImplementation(() => playlistTracks.items)
-
-    // Act
-    await playlistManagementService.orderPlaylist('P1')
-
-    // Assert
-    expect(mockPlaylistOrderingService.reorder).toHaveBeenCalledWith(playlistTracks.items, {})
-    expect(mocks.reorderTracksInPlaylist).toHaveBeenCalledTimes(0)
+    expect(mocks.reorderTracksInPlaylist).toHaveBeenNthCalledWith(1, 'P1', 2, 1, { snapshot_id: 'S1' })
+    expect(mocks.reorderTracksInPlaylist).toHaveBeenNthCalledWith(2, 'P1', 4, 3, { snapshot_id: 'S2' })
   })
 
   // TODO implement this correctly

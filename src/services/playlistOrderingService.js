@@ -1,20 +1,20 @@
-function reorder (playlistTracks, currentTrack) {
-  const currentTrackInfo = defineCurrentTrackInformation(playlistTracks, currentTrack)
-  if (currentTrackInfo.userId) {
-    const userOrder = defineMidCycleUserOrder(playlistTracks, currentTrackInfo)
-    const numberOfTracksPerUser = calculateNumberOfTracksPerUser(userOrder, playlistTracks)
-    return definePlaylistOrder(playlistTracks, userOrder, numberOfTracksPerUser, currentTrackInfo)
-  } else {
-    return playlistTracks
-  }
-}
-
 function defineCurrentTrackInformation (playlistTracks, currentTrack) {
   if (playlistTracks.indexOf(currentTrack) >= 0) {
     return { position: playlistTracks.indexOf(currentTrack), userId: currentTrack.added_by.id }
   } else {
     return {}
   }
+}
+
+function reorderPlaylist (playlistTracks, currentTrack) {
+  const currentTrackInfo = defineCurrentTrackInformation(playlistTracks, currentTrack)
+  let reorderedPlaylist = [...playlistTracks]
+  if (currentTrackInfo.userId) {
+    const userOrder = defineMidCycleUserOrder(playlistTracks, currentTrackInfo)
+    const numberOfTracksPerUser = calculateNumberOfTracksPerUser(userOrder, playlistTracks)
+    reorderedPlaylist = definePlaylistOrder(playlistTracks, userOrder, numberOfTracksPerUser, currentTrackInfo)
+  }
+  return reorderedPlaylist
 }
 
 function defineMidCycleUserOrder (playlistTracks, currentTrackInfo) {
@@ -56,4 +56,4 @@ function definePlaylistOrder (playlistTracks, userOrder, numberOfTracksPerUser, 
   return playlistTracks.slice(0, currentTrackInfo.position + 1).concat(orderedPlaylistTracks.filter(Boolean))
 }
 
-module.exports.reorder = reorder
+module.exports.reorderPlaylist = reorderPlaylist
