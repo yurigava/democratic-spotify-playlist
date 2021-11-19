@@ -6,7 +6,7 @@ describe('When ordering a playlist that has already a song playing, the algorith
   it('A playlist that doesnt have any songs yet should be sorted without throwing any exception ', async () => {
     const playlist = spotifyPlaylistFixtures.generatePlaylistItems()
 
-    const reorderedPlaylist = playlistOrderingService.reorder(playlist)
+    const reorderedPlaylist = playlistOrderingService.reorderPlaylist(playlist)
 
     expect(reorderedPlaylist).toStrictEqual([])
   })
@@ -14,7 +14,7 @@ describe('When ordering a playlist that has already a song playing, the algorith
   it('A playlist [A1*] should become [A1*] after reordering', async () => {
     const playlist = spotifyPlaylistFixtures.generatePlaylistItems([{ trackId: 'A1' }])
 
-    const reorderedPlaylist = playlistOrderingService.reorder(playlist, playlist[0])
+    const reorderedPlaylist = playlistOrderingService.reorderPlaylist(playlist, playlist[0])
 
     expect(reorderedPlaylist.map(item => item.track.id)).toStrictEqual(['A1'])
   })
@@ -22,7 +22,7 @@ describe('When ordering a playlist that has already a song playing, the algorith
   it('A playlist [A1*, A2, A3] should become [A1*, A2, A3] after reordering', async () => {
     const playlist = spotifyPlaylistFixtures.generatePlaylistItems([{ trackId: 'A1' }, { trackId: 'A2' }, { trackId: 'A3' }])
 
-    const reorderedPlaylist = playlistOrderingService.reorder(playlist, playlist[0])
+    const reorderedPlaylist = playlistOrderingService.reorderPlaylist(playlist, playlist[0])
 
     expect(reorderedPlaylist.map(item => item.track.id)).toStrictEqual(['A1', 'A2', 'A3'])
   })
@@ -33,7 +33,7 @@ describe('When ordering a playlist that has already a song playing, the algorith
         { trackId: 'B1' },
         { trackId: 'A2' }])
 
-    const reorderedPlaylist = playlistOrderingService.reorder(playlist, playlist[0])
+    const reorderedPlaylist = playlistOrderingService.reorderPlaylist(playlist, playlist[0])
 
     expect(reorderedPlaylist.map(item => item.track.id)).toStrictEqual(['A1', 'B1', 'A2'])
   })
@@ -49,7 +49,7 @@ describe('When ordering a playlist that has already a song playing, the algorith
         { trackId: 'A2' }]
     )
 
-    const reorderedPlaylist = playlistOrderingService.reorder(playlist, playlist[0])
+    const reorderedPlaylist = playlistOrderingService.reorderPlaylist(playlist, playlist[0])
 
     expect(reorderedPlaylist.map(item => item.track.id)).toStrictEqual(['A1', 'B1', 'C1', 'A2', 'B2', 'C2', 'C3'])
   })
@@ -62,7 +62,7 @@ describe('When ordering a playlist that has already a song playing, the algorith
         { trackId: 'B1', added_at: '2019-12-27T01:30:02Z' }]
     )
 
-    const reorderedPlaylist = playlistOrderingService.reorder(playlist, playlist[0])
+    const reorderedPlaylist = playlistOrderingService.reorderPlaylist(playlist, playlist[0])
 
     expect(reorderedPlaylist.map(item => item.track.id)).toStrictEqual(['A2', 'B2', 'A1', 'B1'])
   })
@@ -74,7 +74,7 @@ describe('When ordering a playlist that has already a song playing, the algorith
         { trackId: 'B1', added_at: '2019-12-27T01:30:02Z' }]
     )
 
-    const reorderedPlaylist = playlistOrderingService.reorder(playlist, playlist[0])
+    const reorderedPlaylist = playlistOrderingService.reorderPlaylist(playlist, playlist[0])
 
     expect(reorderedPlaylist.map(item => item.track.id)).toStrictEqual(['A1', 'B1', 'C1'])
   })
@@ -82,7 +82,7 @@ describe('When ordering a playlist that has already a song playing, the algorith
   it('A playlist [A1, B1, A2*, C1] should become [A1, B1, A2*, C1] after reordering', async () => {
     const playlist = spotifyPlaylistFixtures.generatePlaylistItems([{ trackId: 'A1' }, { trackId: 'B1' }, { trackId: 'A2' }, { trackId: 'C1' }])
 
-    const reorderedPlaylist = playlistOrderingService.reorder(playlist, playlist[3])
+    const reorderedPlaylist = playlistOrderingService.reorderPlaylist(playlist, playlist[3])
 
     expect(reorderedPlaylist.map(item => item.track.id)).toStrictEqual(['A1', 'B1', 'A2', 'C1'])
   })
@@ -90,7 +90,7 @@ describe('When ordering a playlist that has already a song playing, the algorith
   it('A playlist [A1, B1, A2*] should become [A1, B1, A2*] after reordering', async () => {
     const playlist = spotifyPlaylistFixtures.generatePlaylistItems([{ trackId: 'A1' }, { trackId: 'B1' }, { trackId: 'A2' }])
 
-    const reorderedPlaylist = playlistOrderingService.reorder(playlist, playlist[3])
+    const reorderedPlaylist = playlistOrderingService.reorderPlaylist(playlist, playlist[3])
 
     expect(reorderedPlaylist.map(item => item.track.id)).toStrictEqual(['A1', 'B1', 'A2'])
   })
@@ -98,7 +98,7 @@ describe('When ordering a playlist that has already a song playing, the algorith
   it('A playlist [A1, A2*, A3, B1] should become [A1, A2*, B1, A3] after reordering', async () => {
     const playlist = spotifyPlaylistFixtures.generatePlaylistItems([{ trackId: 'A1' }, { trackId: 'A2' }, { trackId: 'A3' }, { trackId: 'B1' }])
 
-    const reorderedPlaylist = playlistOrderingService.reorder(playlist, playlist[1])
+    const reorderedPlaylist = playlistOrderingService.reorderPlaylist(playlist, playlist[1])
 
     expect(reorderedPlaylist.map(item => item.track.id)).toStrictEqual(['A1', 'A2', 'B1', 'A3'])
   })
@@ -106,7 +106,7 @@ describe('When ordering a playlist that has already a song playing, the algorith
   it('A playlist [A1*, B1, B2, B3, A2] should become [A1*,B1, A2, B2, B3] after reordering', async () => {
     const playlist = spotifyPlaylistFixtures.generatePlaylistItems([{ trackId: 'A1' }, { trackId: 'B1' }, { trackId: 'B2' }, { trackId: 'B3' }, { trackId: 'A2' }])
 
-    const reorderedPlaylist = playlistOrderingService.reorder(playlist, playlist[0])
+    const reorderedPlaylist = playlistOrderingService.reorderPlaylist(playlist, playlist[0])
 
     expect(reorderedPlaylist.map(item => item.track.id)).toStrictEqual(['A1', 'B1', 'A2', 'B2', 'B3'])
   })
@@ -114,7 +114,7 @@ describe('When ordering a playlist that has already a song playing, the algorith
   it('A playlist [A1, A2, A3, B1] whose owner is not playing any track should become [A1, A2, A3, B1] after reordering', async () => {
     const playlist = spotifyPlaylistFixtures.generatePlaylistItems([{ trackId: 'A1' }, { trackId: 'A2' }, { trackId: 'A3' }, { trackId: 'B1' }])
 
-    const reorderedPlaylist = playlistOrderingService.reorder(playlist, {})
+    const reorderedPlaylist = playlistOrderingService.reorderPlaylist(playlist, {})
 
     expect(reorderedPlaylist.map(item => item.track.id)).toStrictEqual(['A1', 'A2', 'A3', 'B1'])
   })
@@ -123,7 +123,7 @@ describe('When ordering a playlist that has already a song playing, the algorith
     const playlist = spotifyPlaylistFixtures.generatePlaylistItems([{ trackId: 'A1' }, { trackId: 'A2' }, { trackId: 'A3' }, { trackId: 'B1' }])
     const otherPlaylist = spotifyPlaylistFixtures.generatePlaylistItems([{ trackId: 'N1' }])
 
-    const reorderedPlaylist = playlistOrderingService.reorder(playlist, otherPlaylist[0])
+    const reorderedPlaylist = playlistOrderingService.reorderPlaylist(playlist, otherPlaylist[0])
 
     expect(reorderedPlaylist.map(item => item.track.id)).toStrictEqual(['A1', 'A2', 'A3', 'B1'])
   })
