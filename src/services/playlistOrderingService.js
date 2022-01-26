@@ -49,8 +49,8 @@ function definePlaylistOrder (playlistTracks, userOrder, numberOfTracksPerUser, 
 
   const orderedPlaylistTracks = Array(maxNumberOfTracks * numberOfUsers)
   for (let i = currentTrackInfo.position + 1; i < playlistTracks.length; i++) {
-    const position = userOrder.indexOf(playlistTracks[i].added_by.id)
-    orderedPlaylistTracks[numberOfReorderedTracksPerUser[position]++ * numberOfUsers + position] = playlistTracks[i]
+    const userPosition = userOrder.indexOf(playlistTracks[i].added_by.id)
+    orderedPlaylistTracks[numberOfReorderedTracksPerUser[userPosition]++ * numberOfUsers + userPosition] = playlistTracks[i]
   }
 
   return playlistTracks.slice(0, currentTrackInfo.position + 1).concat(orderedPlaylistTracks.filter(Boolean))

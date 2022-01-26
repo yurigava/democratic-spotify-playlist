@@ -38,7 +38,7 @@ async function managePlaylist (playlistId, refreshToken) {
 
 async function unmanagePlaylist (playlistId, refreshToken) {
   await validatePlaylistBelongsToUser(playlistId, refreshToken)
-  await validatePlaylistIsRegistred(playlistId)
+  await validatePlaylistIsRegistred(playlistId, refreshToken)
 
   clearInterval(managedPlaylists.get(playlistId))
   managedPlaylists.remove(playlistId)
@@ -54,8 +54,9 @@ async function validatePlaylistBelongsToUser (playlistId, refreshToken) {
   }
 }
 
-async function validatePlaylistIsRegistred (playlistId) {
-  if (!managedPlaylists.get(playlistId)) {
+async function validatePlaylistIsRegistred (playlistId, refreshToken) {
+  console.log(`Managed Playlists: ${JSON.stringify(managedPlaylists.get(refreshToken, playlistId))}`)
+  if (!managedPlaylists.get(refreshToken, playlistId)) {
     throw new ResourceNotFoundError(`The given playlist [${playlistId}] was never added`)
   }
 }

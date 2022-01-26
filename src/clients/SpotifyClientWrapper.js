@@ -83,6 +83,7 @@ class SpotifyClientWrapper {
   }
 
   reorderTracksInPlaylist (playlistId, positionInCurentPlaylist, positionInOrderedPlaylist, options) {
+    console.error(`Current Position: ${positionInCurentPlaylist}\nNew Position: ${positionInOrderedPlaylist}`)
     return this.spotifyApi.reorderTracksInPlaylist(playlistId, positionInCurentPlaylist, positionInOrderedPlaylist, options)
       .then(data => data?.body?.snapshot_id ?? '')
       .catch(err => {
