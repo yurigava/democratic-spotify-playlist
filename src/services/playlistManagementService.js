@@ -9,11 +9,10 @@ const managedPlaylists = require('../repositories/managedPlaylists')
 
 async function orderPlaylist (playlistId, refreshToken) {
   const spotifyAuthenticatedClient = await spotifyAuthenticationService.provideAuthenticatedClient(refreshToken)
-  let currenPlaylist = spotifyAuthenticatedClient.retrievePlaylistTracks(playlistId)
+  let currentPlaylist = spotifyAuthenticatedClient.retrievePlaylistTracks(playlistId)
   let currentTrackId = spotifyAuthenticatedClient.retrieveCurrentTrackId()
   let playlistSnapshotId = spotifyAuthenticatedClient.retrievePlaylistSnapshotId(playlistId);
-  [currenPlaylist, currentTrackId] = await Promise.all([currenPlaylist, currentTrackId]).catch((err) => { throw err })
-  const currentPlaylistTracks = currenPlaylist.items
+  [currentPlaylistTracks, currentTrackId] = await Promise.all([currentPlaylist, currentTrackId]).catch((err) => { throw err })
   const currentTrack = currentPlaylistTracks.find((trackInfo) => trackInfo.track.id === currentTrackId) ?? {}
 
   const reorderedPlaylistTracks = playlistOrderingService.reorderPlaylist(currentPlaylistTracks, currentTrack)
