@@ -21,7 +21,6 @@ jest.mock("../../src/repositories/managedPlaylists.js");
 const mockManagedPlaylist = require("../../src/repositories/managedPlaylists.js");
 
 const playlistItemsFixture = require("../../__fixtures__/playlistItems.fixture");
-const playlistFixture = require("../../__fixtures__/playlist.fixture");
 const userPlaylistsFixture = require("../../__fixtures__/userPlaylists.fixture");
 const currentUserProfileFixture = require("../../__fixtures__/currentUserProfile.fixture");
 
@@ -40,9 +39,9 @@ describe("Spotify Reorder Endpoint should be called once for each calculated mov
   it("Spotify Reorder Endpoint should not be called for a playlist that leads to no movement", async () => {
     // Arrange
     const playlistItems = [{ trackId: "A1" }];
-    const playlistTracks = playlistFixture.generatePlaylist(
-      playlistItemsFixture.generatePlaylistItems(playlistItems)
-    );
+    const playlistTracks =
+      playlistItemsFixture.generatePlaylistItems(playlistItems);
+
     const mocks = {
       retrievePlaylistTracks: jest.fn().mockResolvedValue(playlistTracks),
       retrieveCurrentTrackId: jest.fn().mockResolvedValue("A1"),
@@ -72,13 +71,13 @@ describe("Spotify Reorder Endpoint should be called once for each calculated mov
       { trackId: "A2" },
       { trackId: "B1" },
     ];
-    const playlistTracks = playlistFixture.generatePlaylist(
-      playlistItemsFixture.generatePlaylistItems(playlistItems)
-    );
+    const playlistTracks =
+      playlistItemsFixture.generatePlaylistItems(playlistItems);
+
     const reorderedItems = [
-      playlistTracks.items[0],
-      playlistTracks.items[2],
-      playlistTracks.items[1],
+      playlistTracks[0],
+      playlistTracks[2],
+      playlistTracks[1],
     ];
     const mocks = {
       retrievePlaylistTracks: jest.fn().mockResolvedValue(playlistTracks),
@@ -100,12 +99,12 @@ describe("Spotify Reorder Endpoint should be called once for each calculated mov
 
     // Assert
     expect(mockPlaylistOrderingService.reorderPlaylist).toHaveBeenCalledWith(
-      playlistTracks.items,
-      playlistTracks.items[0]
+      playlistTracks,
+      playlistTracks[0]
     );
     expect(
       mockPlaylistMovementCalculator.getPlaylistReorderMovements
-    ).toHaveBeenCalledWith(playlistTracks.items, reorderedItems);
+    ).toHaveBeenCalledWith(playlistTracks, reorderedItems);
     expect(mocks.reorderTracksInPlaylist).toHaveBeenCalledTimes(1);
     expect(mocks.reorderTracksInPlaylist).toHaveBeenNthCalledWith(
       1,
@@ -125,15 +124,15 @@ describe("Spotify Reorder Endpoint should be called once for each calculated mov
       { trackId: "A3" },
       { trackId: "B2" },
     ];
-    const playlistTracks = playlistFixture.generatePlaylist(
-      playlistItemsFixture.generatePlaylistItems(playlistItems)
-    );
+    const playlistTracks =
+      playlistItemsFixture.generatePlaylistItems(playlistItems);
+
     const reorderedItems = [
-      playlistTracks.items[0],
-      playlistTracks.items[2],
-      playlistTracks.items[1],
-      playlistTracks.items[4],
-      playlistTracks.items[3],
+      playlistTracks[0],
+      playlistTracks[2],
+      playlistTracks[1],
+      playlistTracks[4],
+      playlistTracks[3],
     ];
     const mocks = {
       retrievePlaylistTracks: jest.fn().mockResolvedValue(playlistTracks),
@@ -158,12 +157,12 @@ describe("Spotify Reorder Endpoint should be called once for each calculated mov
 
     // Assert
     expect(mockPlaylistOrderingService.reorderPlaylist).toHaveBeenCalledWith(
-      playlistTracks.items,
-      playlistTracks.items[0]
+      playlistTracks,
+      playlistTracks[0]
     );
     expect(
       mockPlaylistMovementCalculator.getPlaylistReorderMovements
-    ).toHaveBeenCalledWith(playlistTracks.items, reorderedItems);
+    ).toHaveBeenCalledWith(playlistTracks, reorderedItems);
     expect(mocks.reorderTracksInPlaylist).toHaveBeenCalledTimes(2);
     expect(mocks.reorderTracksInPlaylist).toHaveBeenNthCalledWith(
       1,

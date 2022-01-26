@@ -5,9 +5,7 @@ function generatePlaylistItems(usersAndTracks = []) {
       ? userAndTrack.added_at
       : `2019-12-27T01:30:${addedAtCounter++}Z`,
     added_by: {
-      id: userAndTrack.added_byId
-        ? userAndTrack.added_byId
-        : userAndTrack.trackId[0],
+      id: userAndTrack.added_byId ?? userAndTrack.trackId[0],
     },
     track: {
       id: userAndTrack.trackId,
@@ -15,17 +13,15 @@ function generatePlaylistItems(usersAndTracks = []) {
   }));
 }
 
-function generatePlaylistWithNItems(numberOfItems) {
-  const usersAndTracks = Array(numberOfItems);
-  const users = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+function generateNItems(numberOfItems) {
+  usersAndTracks = Array(numberOfItems);
 
-  for (let i = 0; i < numberOfItems; i++) {
-    const user = Math.floor(Math.random() * users.length);
-    const trackId = `${users[user]}${i}`;
-    usersAndTracks[i] = { trackId, added_byId: trackId[0] };
-  }
-  generatePlaylistItems(usersAndTracks);
+  usersAndTracks = [...usersAndTracks.keys()].map((element) => {
+    return { trackId: `T${element}`, added_byId: `U${element}` };
+  });
+  
+  return generatePlaylistItems(usersAndTracks);
 }
 
 module.exports.generatePlaylistItems = generatePlaylistItems;
-module.exports.generatePlaylistWithNItems = generatePlaylistWithNItems;
+module.exports.generateNItems = generateNItems;
