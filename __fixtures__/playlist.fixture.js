@@ -1,5 +1,5 @@
 function generatePlaylist (playlistItems = []) {
-  return { items: playlistItems }
+  return playlistItems
 }
 
 module.exports.generatePlaylist = generatePlaylist

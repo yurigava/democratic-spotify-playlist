@@ -91,9 +91,8 @@ describe('Playlist ordering management endpoints', () => {
     playlistManagementService.managePlaylist = jest.fn(() => { throw new ResourceDoesNotBelongToEntityError('P1', 'U1') })
 
     const res = await request(server)
-      .post('/playlist')
+      .post('/playlist/P1')
       .set('Cookie', ['DP_RFT=RT1'])
-      .send({ playlistId: 'P1' })
 
     expect(res.statusCode).toBe(400)
     expect(res.body.message).toBe('The given resource [P1] does not belong to the entity [U1]')
@@ -103,9 +102,8 @@ describe('Playlist ordering management endpoints', () => {
     playlistManagementService.managePlaylist = jest.fn(() => true)
 
     const res = await request(server)
-      .post('/playlist')
+      .post('/playlist/P1')
       .set('Cookie', ['DP_RFT=RT1'])
-      .send({ playlistId: 'P1' })
 
     expect(res.statusCode).toBe(201)
   })
@@ -114,9 +112,8 @@ describe('Playlist ordering management endpoints', () => {
 
   it('When a client requests to remove a playlist that they own, an status code 200 should be returned', async () => {
     const res = await request(server)
-      .delete('/playlist')
+      .delete('/playlist/P1')
       .set('Cookie', ['DP_RFT=RT1'])
-      .send({ playlistId: 'P1' })
 
     expect(res.statusCode).toBe(200)
     expect(res.body.message).toBe('Playlist Removed')
@@ -126,9 +123,8 @@ describe('Playlist ordering management endpoints', () => {
     playlistManagementService.unmanagePlaylist = jest.fn(() => { throw new ResourceDoesNotBelongToEntityError('P1', 'U1') })
 
     const res = await request(server)
-      .delete('/playlist')
+      .delete('/playlist/P1')
       .set('Cookie', ['DP_RFT=RT1'])
-      .send({ playlistId: 'P1' })
 
     expect(res.statusCode).toBe(400)
     expect(res.body.message).toBe('The given resource [P1] does not belong to the entity [U1]')
@@ -138,9 +134,8 @@ describe('Playlist ordering management endpoints', () => {
     playlistManagementService.unmanagePlaylist = jest.fn(() => { throw new ResourceNotFoundError('The given playlist [P1] was never added') })
 
     const res = await request(server)
-      .delete('/playlist')
+      .delete('/playlist/P1')
       .set('Cookie', ['DP_RFT=RT1'])
-      .send({ playlistId: 'P1' })
 
     expect(res.statusCode).toBe(404)
     expect(res.body.message).toBe('Resource not found: The given playlist [P1] was never added')
@@ -150,9 +145,8 @@ describe('Playlist ordering management endpoints', () => {
     playlistManagementService.unmanagePlaylist = jest.fn(() => { throw new ResourceNotFoundError('The given playlist [P1] was never added') })
 
     const res = await request(server)
-      .delete('/playlist')
+      .delete('/playlist/P1')
       .set('Cookie', ['DP_RFT=RT1'])
-      .send({ playlistId: 'P1' })
 
     expect(res.statusCode).toBe(404)
     expect(res.body.message).toBe('Resource not found: The given playlist [P1] was never added')
@@ -224,8 +218,7 @@ describe('Non authenticated users are not allowed to call protected endpoints', 
   // TODO: To be substitued with it.each whenever VS Code jest runner supports it
   it('When a client performs a post request to /playlist without being authenticated, an status code 401 should be returned', async () => {
     const res = await request(server)
-      .post('/playlist')
-      .send()
+      .post('/playlist/P1')
 
     expect(spotifyAuthenticationService.isUserAuthenticated).toBeCalledTimes(1)
     expect(res.statusCode).toBe(401)
@@ -234,8 +227,7 @@ describe('Non authenticated users are not allowed to call protected endpoints', 
 
   it('When a client performs a delete request to /playlist without being authenticated, an status code 401 should be returned', async () => {
     const res = await request(server)
-      .delete('/playlist')
-      .send()
+      .delete('/playlist/P1')
 
     expect(spotifyAuthenticationService.isUserAuthenticated).toBeCalledTimes(1)
     expect(res.statusCode).toBe(401)

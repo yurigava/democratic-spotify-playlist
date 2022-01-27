@@ -55,7 +55,6 @@ async function validatePlaylistBelongsToUser (playlistId, refreshToken) {
 }
 
 async function validatePlaylistIsRegistred (playlistId, refreshToken) {
-  console.log(`Managed Playlists: ${JSON.stringify(managedPlaylists.get(refreshToken, playlistId))}`)
   if (!managedPlaylists.get(refreshToken, playlistId)) {
     throw new ResourceNotFoundError(`The given playlist [${playlistId}] was never added`)
   }

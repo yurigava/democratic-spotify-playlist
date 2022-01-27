@@ -45,7 +45,7 @@ async function addPlaylist (req, res) {
 
 async function removePlaylist (req, res) {
   await spotifyPlaylistManagementService.unmanagePlaylist(req.params.playlistId, req.cookies.DP_RFT)
-  res.statusCode = 202
+  res.statusCode = 200
   res.json({ message: 'Playlist Removed' })
   res.send()
 }
