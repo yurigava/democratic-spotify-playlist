@@ -12,11 +12,11 @@ async function orderPlaylist (playlistId, refreshToken) {
   let currentPlaylist = spotifyAuthenticatedClient.retrievePlaylistTracks(playlistId)
   let currentTrackId = spotifyAuthenticatedClient.retrieveCurrentTrackId()
   let playlistSnapshotId = spotifyAuthenticatedClient.retrievePlaylistSnapshotId(playlistId);
-  [currentPlaylistTracks, currentTrackId] = await Promise.all([currentPlaylist, currentTrackId]).catch((err) => { throw err })
-  const currentTrack = currentPlaylistTracks.find((trackInfo) => trackInfo.track.id === currentTrackId) ?? {}
+  [currentPlaylist, currentTrackId] = await Promise.all([currentPlaylist, currentTrackId]).catch((err) => { throw err })
+  const currentTrack = currentPlaylist.find((trackInfo) => trackInfo.track.id === currentTrackId) ?? {}
 
-  const reorderedPlaylistTracks = playlistOrderingService.reorderPlaylist(currentPlaylistTracks, currentTrack)
-  const movements = playlistMovementCalculator.getPlaylistReorderMovements(currentPlaylistTracks, reorderedPlaylistTracks)
+  const reorderedPlaylistTracks = playlistOrderingService.reorderPlaylist(currentPlaylist, currentTrack)
+  const movements = playlistMovementCalculator.getPlaylistReorderMovements(currentPlaylist, reorderedPlaylistTracks)
 
   for (const movement of movements) {
     playlistSnapshotId = spotifyAuthenticatedClient.reorderTracksInPlaylist(playlistId, movement.from, movement.to, { snapshot_id: await playlistSnapshotId })
