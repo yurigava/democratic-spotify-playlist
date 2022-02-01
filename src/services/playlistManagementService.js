@@ -41,7 +41,7 @@ async function unmanagePlaylist (playlistId, refreshToken) {
   await validatePlaylistIsRegistred(playlistId, refreshToken)
 
   clearInterval(managedPlaylists.get(playlistId))
-  managedPlaylists.remove(playlistId)
+  managedPlaylists.remove(refreshToken, playlistId)
 }
 
 async function validatePlaylistBelongsToUser (playlistId, refreshToken) {

@@ -23,7 +23,7 @@ function getAllPlaylistIds (refreshToken) {
 }
 
 function remove (refreshToken, playlistId) {
-  delete managedPlaylists[refreshToken].delete(playlistId)
+  managedPlaylists[refreshToken]?.delete(playlistId)
 }
 
 module.exports = {

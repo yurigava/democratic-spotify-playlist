@@ -12,6 +12,9 @@ function reorderPlaylist (playlistTracks, currentTrack) {
   if (currentTrackInfo.userId) {
     const userOrder = defineMidCycleUserOrder(playlistTracks, currentTrackInfo)
     const numberOfTracksPerUser = calculateNumberOfTracksPerUser(userOrder, playlistTracks)
+    numberOfTracksPerUser.forEach((tracksNumber) => {
+      console.log(`${tracksNumber.userId}: ${tracksNumber.tracks}`)
+    })
     reorderedPlaylist = definePlaylistOrder(playlistTracks, userOrder, numberOfTracksPerUser, currentTrackInfo)
   }
   return reorderedPlaylist
