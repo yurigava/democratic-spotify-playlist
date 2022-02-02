@@ -48,3 +48,7 @@ describe('Movements should be calculated based on the current playlist and the o
     expect(calculatedMovements).toStrictEqual([{ from: 2, to: 1 }, { from: 4, to: 3 }])
   })
 })
+
+describe('Comparison betweet track entries', () => {
+  it.todo('The comparison between entries takes into account the date that the music was added.')
+})
