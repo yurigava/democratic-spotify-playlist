@@ -221,7 +221,7 @@ describe("Spotify playlist endpoints", () => {
       .send();
 
     expect(currentUserProfileService.getPlaylists).toHaveBeenCalledWith(
-      { collaborative: "true", mine: "true" },
+      { collaborative: true, mine: true },
       "RT1"
     );
     expect(res.statusCode).toBe(200);

@@ -5,16 +5,16 @@ async function getPlaylists(options, refreshToken) {
     await spotifyAuthenticationService.provideAuthenticatedClient(refreshToken);
   let userPlaylists = spotifyApi.retrieveUserPlaylists();
 
-  if (options.mine) {
+  if (options.mine === true || options.mine === false) {
     const userId = (await spotifyApi.retrieveCurrentUserProfile()).id;
     userPlaylists = (await userPlaylists).filter(
-      (playlist) => playlist.owner.id === userId
+      (playlist) => (playlist.owner.id === userId) === options.mine
     );
   }
 
-  if (options.collaborative) {
+  if (options.collaborative === true || options.collaborative === false) {
     userPlaylists = (await userPlaylists).filter(
-      (playlist) => playlist.collaborative
+      (playlist) => playlist.collaborative === options.collaborative
     );
   }
 

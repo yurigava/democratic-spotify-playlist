@@ -1,5 +1,6 @@
 const express = require("express");
 const cookieParser = require("cookie-parser");
+const boolParser = require('express-query-boolean')
 
 const app = express();
 app.disable("x-powered-by");
@@ -10,6 +11,7 @@ const errorHandler = require("./middleware/errorMiddleware");
 
 app.use(express.json());
 app.use(cookieParser());
+app.use(boolParser());
 app.use(cors({ credentials: true, origin: process.env.WEB_APP_BASE_URL }));
 app.use("/", routes);
 app.use(errorHandler);
