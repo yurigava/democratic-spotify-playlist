@@ -1,9 +1,9 @@
-const GeneralError = require('./GeneralError')
+const GeneralError = require("./GeneralError");
 
 class ResourceNotFoundError extends GeneralError {
-  constructor (message) {
-    super(`Resource not found: ${message}`, 404)
+  constructor(message) {
+    super(`Resource not found: ${message}`, 404);
   }
 }
 
-module.exports = ResourceNotFoundError
+module.exports = ResourceNotFoundError;
