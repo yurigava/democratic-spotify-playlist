@@ -193,7 +193,7 @@ describe('Playlist that belongs to the user', () => {
 
   it('The method to order a playlist should be called indefenitly after a playlist is given to be managed by the service', async () => {
     // Arrange
-    jest.spyOn(playlistManagementService, 'orderPlaylist')
+    playlistManagementService.orderPlaylist = jest.fn();
 
     // Act
     await playlistManagementService.managePlaylist('P1')
@@ -209,7 +209,7 @@ describe('Playlist that belongs to the user', () => {
   // TODO check that the timer object has been correctly deleted
   it('When the service is requested to unmanage the playlist, the timer for that playlist should cease running', async () => {
     // Arrange
-    jest.spyOn(playlistManagementService, 'orderPlaylist')
+    playlistManagementService.orderPlaylist = jest.fn();
     jest.spyOn(mockManagedPlaylist, 'get').mockReturnValue(true)
 
     // Act
