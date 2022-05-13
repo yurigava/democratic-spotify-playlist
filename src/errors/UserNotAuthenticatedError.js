@@ -1,9 +1,12 @@
-const GeneralError = require('./GeneralError')
+const GeneralError = require("./GeneralError");
 
 class UserNotAuthenticatedError extends GeneralError {
-  constructor () {
-    super('The user is not authenticated. Please ensure to authenticate before performing this action', 401)
+  constructor() {
+    super(
+      "The user is not authenticated. Please ensure to authenticate before performing this action",
+      401
+    );
   }
 }
 
-module.exports = UserNotAuthenticatedError
+module.exports = UserNotAuthenticatedError;
