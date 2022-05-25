@@ -60,8 +60,8 @@ async function managePlaylist(playlistId, refreshToken) {
 }
 
 async function unmanagePlaylist(playlistId, refreshToken) {
-  await validatePlaylistBelongsToUser(playlistId, refreshToken);
-  await validatePlaylistIsRegistred(playlistId);
+  await module.exports.validatePlaylistBelongsToUser(playlistId, refreshToken);
+  await module.exports.validatePlaylistIsRegistred(playlistId);
 
   clearInterval(managedPlaylists.get(playlistId));
   managedPlaylists.remove(playlistId);
@@ -94,4 +94,6 @@ module.exports = {
   managePlaylist,
   unmanagePlaylist,
   getManagedPlaylistsIds,
+  validatePlaylistBelongsToUser,
+  validatePlaylistIsRegistred
 };

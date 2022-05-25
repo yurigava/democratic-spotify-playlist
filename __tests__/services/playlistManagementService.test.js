@@ -32,11 +32,6 @@ beforeAll(() => {
   jest.useFakeTimers();
 });
 
-afterEach(() => {
-  jest.clearAllTimers();
-  jest.clearAllMocks();
-});
-
 function setupSpotifyClientWrapperMock(mocks) {
   MockSpotifyClientWrapper.mockImplementation(() => ({ ...mocks }));
 }
@@ -53,6 +48,7 @@ describe("Spotify Reorder Endpoint should be called once for each calculated mov
       retrieveCurrentTrackId: jest.fn().mockResolvedValue("A1"),
       retrievePlaylistSnapshotId: jest.fn().mockResolvedValue("S1"),
       reorderTracksInPlaylist: jest.fn(),
+      currentPlaylistTracks: jest.fn(),
     };
     setupSpotifyClientWrapperMock(mocks);
 
@@ -87,10 +83,11 @@ describe("Spotify Reorder Endpoint should be called once for each calculated mov
     const mocks = {
       retrievePlaylistTracks: jest.fn().mockResolvedValue(playlistTracks),
       retrieveCurrentTrackId: jest.fn().mockResolvedValue("A1"),
-      retrievePlaylistSnapshotId: jest.fn().mockResolvedValueOnce("S1"),
+      retrievePlaylistSnapshotId: jest.fn().mockResolvedValue("S1"),
       reorderTracksInPlaylist: jest.fn(),
     };
     setupSpotifyClientWrapperMock(mocks);
+
     jest
       .spyOn(mockPlaylistOrderingService, "reorderPlaylist")
       .mockImplementation(() => reorderedItems);
@@ -141,7 +138,7 @@ describe("Spotify Reorder Endpoint should be called once for each calculated mov
     const mocks = {
       retrievePlaylistTracks: jest.fn().mockResolvedValue(playlistTracks),
       retrieveCurrentTrackId: jest.fn().mockResolvedValue("A1"),
-      retrievePlaylistSnapshotId: jest.fn().mockResolvedValueOnce("S1"),
+      retrievePlaylistSnapshotId: jest.fn().mockResolvedValue("S1"),
       reorderTracksInPlaylist: jest.fn().mockResolvedValue("S2"),
     };
 
@@ -198,8 +195,8 @@ describe("Spotify Reorder Endpoint should be called once for each calculated mov
   );
 });
 
-describe("Playlist that does not belong to the user", () => {
-  it("Trying to manage a playlist that the user does not own should throw exception and should not trigger a playlist reorder", async () => {
+describe("Playlist management status change when the owner does not own a playlist", () => {
+  it("Trying to manage a playlist that the user does not own should throw exception", async () => {
     // Arrange
     const userPlaylists = userPlaylistsFixture.generateUserPlaylistsItem([
       { userId: "U2", playlistId: "P1" },
@@ -264,70 +261,20 @@ describe("Playlist that does not belong to the user", () => {
     ).rejects.toThrow(ResourceDoesNotBelongToEntityError);
     expect(setInterval).toHaveBeenCalledTimes(0);
   });
-});
 
-describe("Playlist that belongs to the user", () => {
-  beforeAll(() => {
-    const userPlaylists = userPlaylistsFixture.generateUserPlaylistsItem([
-      { userId: "U1", playlistId: "P1" },
-    ]);
-    const currentUserProfile =
-      currentUserProfileFixture.generateCurrentUserProfile({ userId: "U1" });
-    const mocks = {
-      retrieveCurrentUserProfile: jest
-        .fn()
-        .mockResolvedValue(currentUserProfile),
-      retrieveUserPlaylists: jest.fn().mockResolvedValue(userPlaylists),
-    };
-    setupSpotifyClientWrapperMock(mocks);
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
-    jest.restoreAllMocks();
-  });
-
-  it("The method to order a playlist should be called indefenitly after a playlist is given to be managed by the service", async () => {
-    // Arrange
-    playlistManagementService.orderPlaylist = jest.fn();
-
-    // Act
-    await playlistManagementService.managePlaylist("P1");
-    jest.runOnlyPendingTimers();
-    jest.runOnlyPendingTimers();
-
-    // Assert
-    expect(setInterval).toHaveBeenCalledTimes(1);
-    expect(mockManagedPlaylist.add).toHaveBeenCalledTimes(1);
-    expect(playlistManagementService.orderPlaylist).toHaveBeenCalledTimes(2);
-  });
-
-  // TODO check that the timer object has been correctly deleted
-  it("When the service is requested to unmanage the playlist, the timer for that playlist should cease running", async () => {
-    // Arrange
-    playlistManagementService.orderPlaylist = jest.fn();
-    jest.spyOn(mockManagedPlaylist, "get").mockReturnValue(true);
-
-    // Act
-    await playlistManagementService.unmanagePlaylist("P1");
-
-    // Assert
-    expect(clearInterval).toHaveBeenCalledTimes(1);
-    expect(mockManagedPlaylist.get).toHaveBeenCalledTimes(2);
-    expect(mockManagedPlaylist.remove).toHaveBeenCalledTimes(1);
-  });
-
-  it("Trying to unmanage a playlist that was not registred should throw exception and should not trigger a playlist reorder", async () => {
+  it("Trying to unmanage a playlist that was not registred should throw exception", async () => {
     // Arrange
     jest.spyOn(mockManagedPlaylist, "get").mockReturnValue(false);
-
+    jest.spyOn(global, "setInterval");
     // Act - Assert
     await expect(
       playlistManagementService.unmanagePlaylist("P1")
     ).rejects.toThrow(ResourceNotFoundError);
     expect(setInterval).toHaveBeenCalledTimes(0);
   });
+});
 
+describe("getManagedPlaylists method", () => {
   it("getManagedPlaylists should return all playlists that the user added to be ordered", async () => {
     // Arrange
     jest
@@ -335,11 +282,39 @@ describe("Playlist that belongs to the user", () => {
       .mockReturnValue(["P1", "P2", "P3"]);
 
     // Act
-    const playlists = await playlistManagementService.getManagedPlaylistsIds(
-      "RFT1"
-    );
+    const playlists = playlistManagementService.getManagedPlaylistsIds("RFT1");
 
     // Assert
     expect(playlists).toStrictEqual({ playlistIds: ["P1", "P2", "P3"] });
+  });
+});
+
+describe("orderPlaylist triggering conditions", () => {
+  beforeAll(() => {
+    playlistManagementService.validatePlaylistBelongsToUser = jest.fn();
+    playlistManagementService.validatePlaylistIsRegistred = jest.fn();
+  });
+
+  beforeEach(() => {
+    jest.resetAllMocks();
+    jest.clearAllMocks();
+    jest.restoreAllMocks();
+    jest.clearAllTimers();
+  });
+
+  // TODO check that the timer object has been correctly deleted
+  it("When the service is requested to unmanage the playlist, the timer for that playlist should cease running", async () => {
+    // Arrange
+    playlistManagementService.orderPlaylist = jest.fn();
+    jest.spyOn(mockManagedPlaylist, "get").mockReturnValue(expect.anything());
+
+    // Act
+    await playlistManagementService.unmanagePlaylist("P1");
+
+    // Assert
+    expect(clearInterval).toHaveBeenCalledTimes(1);
+    expect(mockManagedPlaylist.get).toHaveBeenCalledTimes(1);
+    expect(mockManagedPlaylist.remove).toHaveBeenCalledTimes(1);
+    expect(setInterval).toHaveBeenCalledTimes(0);
   });
 });
