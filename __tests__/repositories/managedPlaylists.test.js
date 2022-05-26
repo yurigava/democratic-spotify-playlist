@@ -3,9 +3,14 @@ const PersistenceError = require("../../src/errors/PersistenceError");
 
 const managedPlaylists = require("../../src/repositories/managedPlaylists");
 
+const DUMMY_TIMER = {
+  timer: expect.anything(),
+  orderingRunning: expect.anything(),
+};
+
 it("Geting a playlist timer whose refresh token was added previously should return the timer", async () => {
   // Arrange
-  managedPlaylists.add("RFT1", { playlistId: "P1", timer: expect.anything() });
+  managedPlaylists.add("RFT1", "P1", DUMMY_TIMER);
 
   // Act
   const authenticationData = managedPlaylists.get("RFT1", "P1");
@@ -40,11 +45,13 @@ it("Geting a playlist timer whose refreshToken is not a string should return a f
 
 it("Adding a playlist whose playlistId is different than a string should throw PersistenceError error", async () => {
   // Act - Assert
-  expect(() => managedPlaylists.add(undefined, expect.anything())).toThrow(
-    PersistenceError
-  );
-  expect(() => managedPlaylists.add(undefined, expect.anything())).toThrow(
-    "Unable to persist a playlist timer with playlistId different than a string. Instead it was [undefined]"
+  expect(() =>
+    managedPlaylists.add(undefined, expect.anything(), expect.anything())
+  ).toThrow(PersistenceError);
+  expect(() =>
+    managedPlaylists.add(undefined, expect.anything(), expect.anything())
+  ).toThrow(
+    "Unable to persist a playlist timer with refreshToken different than a string. Instead it was [undefined]"
   );
 });
 
@@ -62,9 +69,9 @@ it("Geting playlist timer that was removed should return undefined", async () =>
 
 it("Geting all playlist ids for refresh token should return an array of playlistIds", async () => {
   // Arrange
-  managedPlaylists.add("RFT3", { playlistId: "P1", timer: expect.anything() });
-  managedPlaylists.add("RFT3", { playlistId: "P2", timer: expect.anything() });
-  managedPlaylists.add("RFT3", { playlistId: "P3", timer: expect.anything() });
+  managedPlaylists.add("RFT3", "P1", DUMMY_TIMER);
+  managedPlaylists.add("RFT3", "P2", DUMMY_TIMER);
+  managedPlaylists.add("RFT3", "P3", DUMMY_TIMER);
 
   // Act
   const playlistIds = managedPlaylists.getAllPlaylistIds("RFT3");

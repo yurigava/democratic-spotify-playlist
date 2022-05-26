@@ -1,10 +1,10 @@
 const managedPlaylists = {};
 const PersistenceError = require("../errors/PersistenceError");
 
-function add(refreshToken, item) {
+function add(refreshToken, playlistId, item) {
   if (typeof refreshToken !== "string") {
     throw new PersistenceError(
-      `Unable to persist a playlist timer with playlistId different than a string. Instead it was [${typeof playlistId}]`
+      `Unable to persist a playlist timer with refreshToken different than a string. Instead it was [${typeof refreshToken}]`
     );
   }
 
@@ -12,7 +12,7 @@ function add(refreshToken, item) {
     managedPlaylists[refreshToken] = new Map();
   }
 
-  managedPlaylists[refreshToken].set(item.playlistId, item.timer);
+  managedPlaylists[refreshToken].set(playlistId, {...item});
 }
 
 function get(refreshToken, playlistId) {
