@@ -1,4 +1,8 @@
 /* eslint-env jest */
+const AsyncLock = require("async-lock/lib");
+
+const globalVariables = require("../../src/globals/variables");
+
 const playlistManagementService = require("../../src/services/playlistManagementService");
 
 jest.mock("../../src/services/playlistOrderingService");
@@ -14,6 +18,7 @@ const mockProvideAuthentication = jest
   .fn()
   .mockImplementation(() => new MockSpotifyClientWrapper());
 const mockSpotifyAuthenticationService = require("../../src/services/spotifyAuthenticationService.js");
+
 mockSpotifyAuthenticationService.provideAuthenticatedClient =
   mockProvideAuthentication;
 
@@ -23,6 +28,7 @@ const mockManagedPlaylist = require("../../src/repositories/managedPlaylists.js"
 const playlistItemsFixture = require("../../__fixtures__/playlistItems.fixture");
 const userPlaylistsFixture = require("../../__fixtures__/userPlaylists.fixture");
 const currentUserProfileFixture = require("../../__fixtures__/currentUserProfile.fixture");
+const sleep = require("../../__fixtures__/utils/sleep");
 
 const ResourceDoesNotBelongToEntityError = require("../../src/errors/ResourceDoesNotBelongToEntityError");
 const ResourceNotFoundError = require("../../src/errors/ResourceNotFoundError");
@@ -315,5 +321,44 @@ describe("orderPlaylist triggering conditions", () => {
     expect(mockManagedPlaylist.get).toHaveBeenCalledTimes(1);
     expect(mockManagedPlaylist.remove).toHaveBeenCalledTimes(1);
     expect(setInterval).toHaveBeenCalledTimes(0);
+  });
+
+  it("The function orderPlaylist should be called when no other orderPlaylist  is running", async () => {
+    // Arrange
+    // Learned the worst way: the async-lock library does not work with fake timers
+    jest.useRealTimers();
+
+    globalVariables.ORDER_PLAYLIST_INTERVAL = 100;
+    const HALF_PLAYLIST_INTERVAL = globalVariables.ORDER_PLAYLIST_INTERVAL / 2;
+    const ORDER_PLAYLIST_UNDER_INTERVAL = 1;
+    const ORDER_PLAYLIST_OVER_INTERVAL =
+      globalVariables.ORDER_PLAYLIST_INTERVAL + HALF_PLAYLIST_INTERVAL;
+    const SIX_INTERVALS = globalVariables.ORDER_PLAYLIST_INTERVAL * 6;
+    const FIVE_INTERVALS = SIX_INTERVALS - HALF_PLAYLIST_INTERVAL;
+
+    playlistManagementService.orderPlaylist = jest
+      .fn()
+      .mockImplementationOnce(() => sleep(ORDER_PLAYLIST_OVER_INTERVAL))
+      .mockImplementation(() => sleep(ORDER_PLAYLIST_UNDER_INTERVAL));
+
+    mockManagedPlaylist.add = jest.fn();
+
+    const lockSpy = jest.spyOn(AsyncLock.prototype, "isBusy");
+
+    // Act
+    await playlistManagementService.managePlaylist("RFT1", "P1");
+    await sleep(FIVE_INTERVALS);
+
+    // Assert
+    expect(lockSpy).toHaveBeenCalledTimes(5);
+    expect(lockSpy).nthReturnedWith(1, false);
+    expect(lockSpy).nthReturnedWith(2, true);
+    expect(lockSpy).nthReturnedWith(3, false);
+    expect(lockSpy).nthReturnedWith(4, false);
+    expect(lockSpy).nthReturnedWith(5, false);
+    expect(mockManagedPlaylist.add).toHaveBeenCalledTimes(1);
+    expect(playlistManagementService.orderPlaylist).toHaveBeenCalledTimes(4);
+
+    jest.useFakeTimers();
   });
 });
