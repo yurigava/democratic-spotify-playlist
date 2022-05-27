@@ -9,6 +9,7 @@ const mockProvideAuthentication = jest
   .fn()
   .mockImplementation(() => new MockSpotifyClientWrapper());
 const mockSpotifyAuthenticationService = require("../../src/services/spotifyAuthenticationService.js");
+
 mockSpotifyAuthenticationService.provideAuthenticatedClient =
   mockProvideAuthentication;
 
@@ -112,6 +113,34 @@ describe('getPlaylists should return the playlists filtered by the content of "o
     });
   });
 
+  it('When the option object has property "mine" equals false, returns only playlists that are not from that user', async () => {
+    // Arrange
+
+    // Act
+    const actualPlaylist = await currentUserProfileService.getPlaylists(
+      { mine: false },
+      "RFT1"
+    );
+
+    // Assert
+    expect(actualPlaylist).toStrictEqual({
+      playlists: USER_PLAYLISTS.slice(4, 7),
+    });
+  });
+
+  it('When the option object has property "mine" equals a non-boolean, should return playlists owned by user and followed by the user', async () => {
+    // Arrange
+
+    // Act
+    const actualPlaylist = await currentUserProfileService.getPlaylists(
+      { mine: "random" },
+      "RFT1"
+    );
+
+    // Assert
+    expect(actualPlaylist).toStrictEqual({ playlists: USER_PLAYLISTS });
+  });
+
   it('When the option object has property "collaborative" equals true, should return only the playlists that are collaborative', async () => {
     // Arrange
 
@@ -131,5 +160,34 @@ describe('getPlaylists should return the playlists filtered by the content of "o
       ],
     });
   });
+
+  it('When the option object has property "collaborative" equals false, should return only the playlists that are not collaborative', async () => {
+    // Arrange
+
+    // Act
+    const actualPlaylist = await currentUserProfileService.getPlaylists(
+      { collaborative: false },
+      "RFT1"
+    );
+
+    // Assert
+    expect(actualPlaylist).toStrictEqual({
+      playlists: [USER_PLAYLISTS[0], USER_PLAYLISTS[2], USER_PLAYLISTS[5]],
+    });
+  });
+
+  it('When the option object has property "collaborative" equals a non-boolean, should return collaborative and non-collaborative playlists', async () => {
+    // Arrange
+
+    // Act
+    const actualPlaylist = await currentUserProfileService.getPlaylists(
+      { collaborative: "random" },
+      "RFT1"
+    );
+
+    // Assert
+    expect(actualPlaylist).toStrictEqual({ playlists: USER_PLAYLISTS });
+  });
+
   it.todo("handling pagination");
 });
