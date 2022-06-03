@@ -7,21 +7,20 @@ const ResourceNotFoundError = require("../errors/ResourceNotFoundError");
 
 const managedPlaylists = require("../repositories/managedPlaylists");
 
-async function orderPlaylist(playlistId, refreshToken) {
+async function orderPlaylist (playlistId, refreshToken) {
   const spotifyAuthenticatedClient =
     await spotifyAuthenticationService.provideAuthenticatedClient(refreshToken);
-  let currenPlaylist =
+  let currentPlaylistTracks =
     spotifyAuthenticatedClient.retrievePlaylistTracks(playlistId);
   let currentTrackId = spotifyAuthenticatedClient.retrieveCurrentTrackId();
   let playlistSnapshotId =
     spotifyAuthenticatedClient.retrievePlaylistSnapshotId(playlistId);
-  [currenPlaylist, currentTrackId] = await Promise.all([
-    currenPlaylist,
+  [currentPlaylistTracks, currentTrackId] = await Promise.all([
+    currentPlaylistTracks,
     currentTrackId,
   ]).catch((err) => {
     throw err;
   });
-  const currentPlaylistTracks = currenPlaylist.items;
   const currentTrack =
     currentPlaylistTracks.find(
       (trackInfo) => trackInfo.track.id === currentTrackId
@@ -95,5 +94,5 @@ module.exports = {
   unmanagePlaylist,
   getManagedPlaylistsIds,
   validatePlaylistBelongsToUser,
-  validatePlaylistIsRegistred
+  validatePlaylistIsRegistred,
 };

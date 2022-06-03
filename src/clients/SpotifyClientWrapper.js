@@ -25,17 +25,27 @@ class SpotifyClientWrapper {
     return this.spotifyApi.createAuthorizeURL(scopes, state);
   }
 
-  retrievePlaylistTracks(playlistId) {
-    const offsetCounter = 0;
-    return this.spotifyApi
-      .getPlaylistTracks(playlistId, {
-        offset: offsetCounter,
-        fields: "items(added_at, added_by.id,track(id))",
-      })
-      .then((data) => data.body)
-      .catch((err) => {
-        console.error(`Error while retrieving playlist tracks!\nError:${err}`);
-      });
+  async retrievePlaylistTracks (playlistId) {
+    let offsetCounter = 0
+    const tracksPerPage = 100
+    let tracksInfo = []
+    let tracksPage
+
+    do {
+      tracksPage = await this.spotifyApi
+        .getPlaylistTracks(playlistId, {
+          offset: offsetCounter,
+          limit: tracksPerPage,
+          fields: 'items(added_at, added_by.id, track(id)), total'
+        })
+        .then(data => data.body)
+        .catch(err => {
+          console.error(`Error while retrieving playlist tracks!\nError:${err}`)
+        })
+      tracksInfo = tracksInfo.concat(tracksPage.items);
+      offsetCounter += tracksPerPage;
+    } while(tracksPage.total > offsetCounter)
+    return tracksInfo
   }
 
   retrievePlaylistSnapshotId(playlistId) {
