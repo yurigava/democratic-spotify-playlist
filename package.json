@@ -4,7 +4,7 @@
   "description": "Reorders Collaborative Playlist Democratically",
   "main": "src/index.js",
   "scripts": {
-    "test": "jest --detectOpenHandles --silent --coverage",
+    "test": "jest --detectOpenHandles --coverage --forceExit",
     "start": "node -r dotenv/config src/server.js",
     "debug": "node --inspect src/server.js",
     "debugTest": "node --inspect-brk node_modules/jest/bin/jest.js --runInBand",

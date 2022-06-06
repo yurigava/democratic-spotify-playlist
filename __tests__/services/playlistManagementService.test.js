@@ -323,7 +323,7 @@ describe("orderPlaylist triggering conditions", () => {
     expect(setInterval).toHaveBeenCalledTimes(0);
   });
 
-  it("The function orderPlaylist should be called when no other orderPlaylist  is running", async () => {
+  it("The function orderPlaylist should be called when no other orderPlaylist  is running for the same playlist", async () => {
     // Arrange
     // Learned the worst way: the async-lock library does not work with fake timers
     jest.useRealTimers();
@@ -334,7 +334,7 @@ describe("orderPlaylist triggering conditions", () => {
     const ORDER_PLAYLIST_OVER_INTERVAL =
       globalVariables.ORDER_PLAYLIST_INTERVAL + HALF_PLAYLIST_INTERVAL;
     const SIX_INTERVALS = globalVariables.ORDER_PLAYLIST_INTERVAL * 6;
-    const FIVE_INTERVALS = SIX_INTERVALS - HALF_PLAYLIST_INTERVAL;
+    const FIVE_INTERVALS_AND_A_HALF = SIX_INTERVALS - HALF_PLAYLIST_INTERVAL;
 
     playlistManagementService.orderPlaylist = jest
       .fn()
@@ -347,7 +347,7 @@ describe("orderPlaylist triggering conditions", () => {
 
     // Act
     await playlistManagementService.managePlaylist("RFT1", "P1");
-    await sleep(FIVE_INTERVALS);
+    await sleep(FIVE_INTERVALS_AND_A_HALF);
 
     // Assert
     expect(lockSpy).toHaveBeenCalledTimes(5);

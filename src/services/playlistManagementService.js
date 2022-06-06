@@ -56,7 +56,7 @@ function getManagedPlaylistsIds(refreshToken) {
 
 async function managePlaylist(playlistId, refreshToken) {
   await module.exports.validatePlaylistBelongsToUser(playlistId, refreshToken);
-  const lockKey = `${refreshToken}-${playlistId}`
+  const lockKey = playlistId
 
   const timer = setInterval(() => {
     if(!lock.isBusy(lockKey)) {
