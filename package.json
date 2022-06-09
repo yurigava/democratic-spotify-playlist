@@ -4,7 +4,7 @@
   "description": "Reorders Collaborative Playlist Democratically",
   "main": "src/index.js",
   "scripts": {
-    "test": "jest --detectOpenHandles --silent --coverage",
+    "test": "jest --detectOpenHandles --coverage --forceExit",
     "start": "node -r dotenv/config src/server.js",
     "debug": "node --inspect src/server.js",
     "debugTest": "node --inspect-brk node_modules/jest/bin/jest.js --runInBand",
@@ -26,6 +26,7 @@
   },
   "homepage": "https://github.com/mgkramar/democratic-spotify-playlist#readme",
   "dependencies": {
+    "async-lock": "^1.3.1",
     "cookie-parser": "^1.4.5",
     "cors": "^2.8.5",
     "express": "^4.17.1",

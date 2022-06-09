@@ -1,3 +1,5 @@
+const globalVariables = require("../globals/variables")
+
 const spotifyAuthenticationService = require("./spotifyAuthenticationService");
 const playlistOrderingService = require("./playlistOrderingService");
 const playlistMovementCalculator = require("./playlistMovementCalculator");
@@ -7,7 +9,10 @@ const ResourceNotFoundError = require("../errors/ResourceNotFoundError");
 
 const managedPlaylists = require("../repositories/managedPlaylists");
 
-async function orderPlaylist (playlistId, refreshToken) {
+const AsyncLock = require('async-lock');
+const lock = new AsyncLock();
+
+async function orderPlaylist(playlistId, refreshToken) {
   const spotifyAuthenticatedClient =
     await spotifyAuthenticationService.provideAuthenticatedClient(refreshToken);
   let currentPlaylistTracks =
@@ -50,12 +55,20 @@ function getManagedPlaylistsIds(refreshToken) {
 }
 
 async function managePlaylist(playlistId, refreshToken) {
-  await validatePlaylistBelongsToUser(playlistId, refreshToken);
+  await module.exports.validatePlaylistBelongsToUser(playlistId, refreshToken);
+  const lockKey = playlistId
 
-  const timer = setInterval(function () {
-    module.exports.orderPlaylist(playlistId, refreshToken);
-  }, 100 * 1000);
-  managedPlaylists.add(refreshToken, { playlistId, timer });
+  const timer = setInterval(() => {
+    if(!lock.isBusy(lockKey)) {
+      lock.acquire(lockKey, function () {
+        return module.exports.orderPlaylist(playlistId, refreshToken)
+      })
+    }
+  }, globalVariables.ORDER_PLAYLIST_INTERVAL);
+
+  managedPlaylists.add(refreshToken, playlistId, {
+    timer
+  });
 }
 
 async function unmanagePlaylist(playlistId, refreshToken) {
