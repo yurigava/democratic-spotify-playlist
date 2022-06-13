@@ -67,3 +67,9 @@ Body:
 ## Acknowledgments
 
 This project was created by me and completely refactored by [@mgkramar](https://github.com/mgkramar)
+
+## Contributing to the project
+
+First things first, ensure you have ![Node along with NPM installed](https://nodejs.org/en/download/).
+
+Secondly, ensure that your code ![meet the repo's formatting standards](__docs__/LINTING.md)
