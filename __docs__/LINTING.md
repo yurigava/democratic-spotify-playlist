@@ -1,10 +1,10 @@
 # Formatting Standards
 
-This project uses ![ESLint](https://eslint.org/) for linting and follows AirBnB's Style Guide. Also, ![ESLint Prettier plugin](https://github.com/prettier/eslint-plugin-prettier) is applied so Prettier suggestions are treated as ESLint errors. It is preferable to install ESLint extension/plugin in your favorite IDE so linting is made easy
+This project uses [ESLint](https://eslint.org/) for linting and follows AirBnB's Style Guide. Also, [ESLint Prettier plugin](https://github.com/prettier/eslint-plugin-prettier) is applied so Prettier suggestions are treated as ESLint errors. It is preferable to install ESLint extension/plugin in your favorite IDE so linting is made easy
 
 ## Visual Studio Code
 
-In Visual Studio Code there is a ![ESLint extesion](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) that may be installed. Errors will show in the Problems panel
+In Visual Studio Code there is a [ESLint extesion](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint) that may be installed. Errors will show in the Problems panel
 
 ## For Windows Users
 
@@ -37,6 +37,6 @@ Line breaks on windows consist of CRLF control characters whereas on Linux they 
     ]
   }
 }
-```json
+```
 
 Ensure not to commit this change
