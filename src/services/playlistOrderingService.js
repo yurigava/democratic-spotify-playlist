@@ -27,7 +27,7 @@ function defineMidCycleUserOrder(playlistTracks, currentTrackInfo) {
   return pivotUserOrder(userOrder, currentTrackUserPositionInCycle);
 }
 
-function reorderPlaylist(playlistTracks, currentTrack) {
+function definePlaylistTracksOrder(playlistTracks, currentTrack) {
   const currentTrackInfo = defineCurrentTrackInformation(
     playlistTracks,
     currentTrack
@@ -93,4 +93,4 @@ function definePlaylistOrder(
     .concat(orderedPlaylistTracks.filter(Boolean));
 }
 
-module.exports.reorderPlaylist = reorderPlaylist;
+module.exports.definePlaylistTracksOrder = definePlaylistTracksOrder;

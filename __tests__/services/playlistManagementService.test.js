@@ -33,10 +33,6 @@ const sleep = require("../../__fixtures__/utils/sleep");
 const ResourceDoesNotBelongToEntityError = require("../../src/errors/ResourceDoesNotBelongToEntityError");
 const ResourceNotFoundError = require("../../src/errors/ResourceNotFoundError");
 
-beforeAll(() => {
-  jest.useFakeTimers();
-});
-
 function setupSpotifyClientWrapperMock(mocks) {
   MockSpotifyClientWrapper.mockImplementation(() => ({ ...mocks }));
 }
@@ -58,13 +54,13 @@ describe("Spotify Reorder Endpoint should be called once for each calculated mov
     setupSpotifyClientWrapperMock(mocks);
 
     jest
-      .spyOn(mockPlaylistOrderingService, "reorderPlaylist")
+      .spyOn(mockPlaylistOrderingService, "definePlaylistTracksOrder")
       .mockImplementation(() => ["A1"]);
     jest
       .spyOn(mockPlaylistMovementCalculator, "getPlaylistReorderMovements")
       .mockImplementation(() => []);
     // Act
-    await playlistManagementService.orderPlaylist("P1");
+    await playlistManagementService.reorderPlaylistOnSpotify("P1");
 
     // Assert
     expect(mocks.reorderTracksInPlaylist).toHaveBeenCalledTimes(0);
@@ -94,20 +90,19 @@ describe("Spotify Reorder Endpoint should be called once for each calculated mov
     setupSpotifyClientWrapperMock(mocks);
 
     jest
-      .spyOn(mockPlaylistOrderingService, "reorderPlaylist")
+      .spyOn(mockPlaylistOrderingService, "definePlaylistTracksOrder")
       .mockImplementation(() => reorderedItems);
     jest
       .spyOn(mockPlaylistMovementCalculator, "getPlaylistReorderMovements")
       .mockImplementation(() => [{ from: 2, to: 1 }]);
 
     // Act
-    await playlistManagementService.orderPlaylist("P1");
+    await playlistManagementService.reorderPlaylistOnSpotify("P1");
 
     // Assert
-    expect(mockPlaylistOrderingService.reorderPlaylist).toHaveBeenCalledWith(
-      playlistTracks,
-      playlistTracks[0]
-    );
+    expect(
+      mockPlaylistOrderingService.definePlaylistTracksOrder
+    ).toHaveBeenCalledWith(playlistTracks, playlistTracks[0]);
     expect(
       mockPlaylistMovementCalculator.getPlaylistReorderMovements
     ).toHaveBeenCalledWith(playlistTracks, reorderedItems);
@@ -149,7 +144,7 @@ describe("Spotify Reorder Endpoint should be called once for each calculated mov
 
     setupSpotifyClientWrapperMock(mocks);
     jest
-      .spyOn(mockPlaylistOrderingService, "reorderPlaylist")
+      .spyOn(mockPlaylistOrderingService, "definePlaylistTracksOrder")
       .mockImplementation(() => reorderedItems);
     jest
       .spyOn(mockPlaylistMovementCalculator, "getPlaylistReorderMovements")
@@ -159,13 +154,12 @@ describe("Spotify Reorder Endpoint should be called once for each calculated mov
       ]);
 
     // Act
-    await playlistManagementService.orderPlaylist("P1");
+    await playlistManagementService.reorderPlaylistOnSpotify("P1");
 
     // Assert
-    expect(mockPlaylistOrderingService.reorderPlaylist).toHaveBeenCalledWith(
-      playlistTracks,
-      playlistTracks[0]
-    );
+    expect(
+      mockPlaylistOrderingService.definePlaylistTracksOrder
+    ).toHaveBeenCalledWith(playlistTracks, playlistTracks[0]);
     expect(
       mockPlaylistMovementCalculator.getPlaylistReorderMovements
     ).toHaveBeenCalledWith(playlistTracks, reorderedItems);
@@ -201,6 +195,10 @@ describe("Spotify Reorder Endpoint should be called once for each calculated mov
 });
 
 describe("Playlist management status change when the owner does not own a playlist", () => {
+  beforeAll(() => {
+    jest.spyOn(global, "setInterval");
+  });
+
   it("Trying to manage a playlist that the user does not own should throw exception", async () => {
     // Arrange
     const userPlaylists = userPlaylistsFixture.generateUserPlaylistsItem([
@@ -294,23 +292,56 @@ describe("getManagedPlaylists method", () => {
   });
 });
 
-describe("orderPlaylist triggering conditions", () => {
+describe("reorderPlaylist triggering conditions", () => {
+  it("The function orderPlaylist should be called when no other orderPlaylist call is running for the same playlist", async () => {
+    // Arrange
+    // Learned the worst way: the async-lock library does not work with fake timers
+    jest.useRealTimers();
+    const REORDER_RUNNING_TIME = 50;
+    const UNDER_REORDER_RUNNING_TIME = REORDER_RUNNING_TIME * 0.9;
+    const REMAINING_RUNNING_TIME = REORDER_RUNNING_TIME * 0.1;
+
+    playlistManagementService.reorderPlaylistOnSpotify = jest
+      .fn()
+      .mockImplementationOnce(() => sleep(REORDER_RUNNING_TIME));
+
+    const isBusySpy = jest.spyOn(AsyncLock.prototype, "isBusy");
+
+    // Act
+    playlistManagementService.reorderPlaylist("P1", "RFT1");
+    await sleep(UNDER_REORDER_RUNNING_TIME);
+    playlistManagementService.reorderPlaylist("P1", "RFT1");
+    await sleep(REMAINING_RUNNING_TIME);
+    playlistManagementService.reorderPlaylist("P1", "RFT1");
+
+    // Assert
+    expect(isBusySpy).toHaveBeenCalledTimes(3);
+    expect(isBusySpy).nthReturnedWith(1, false);
+    expect(isBusySpy).nthReturnedWith(2, true);
+    expect(isBusySpy).nthReturnedWith(3, false);
+    expect(
+      playlistManagementService.reorderPlaylistOnSpotify
+    ).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe("reorderPlaylist triggering conditions", () => {
   beforeAll(() => {
     playlistManagementService.validatePlaylistBelongsToUser = jest.fn();
     playlistManagementService.validatePlaylistIsRegistred = jest.fn();
+    mockManagedPlaylist.add = jest.fn();
+    jest.useFakeTimers();
   });
 
   beforeEach(() => {
-    jest.resetAllMocks();
-    jest.clearAllMocks();
-    jest.restoreAllMocks();
     jest.clearAllTimers();
+    jest.clearAllMocks();
   });
 
   // TODO check that the timer object has been correctly deleted
   it("When the service is requested to unmanage the playlist, the timer for that playlist should cease running", async () => {
     // Arrange
-    playlistManagementService.orderPlaylist = jest.fn();
+    playlistManagementService.reorderPlaylistOnSpotify = jest.fn();
     jest.spyOn(mockManagedPlaylist, "get").mockReturnValue(expect.anything());
 
     // Act
@@ -323,42 +354,31 @@ describe("orderPlaylist triggering conditions", () => {
     expect(setInterval).toHaveBeenCalledTimes(0);
   });
 
-  it("The function orderPlaylist should be called when no other orderPlaylist  is running for the same playlist", async () => {
+  it("The function reorderPlaylist should be called periodically after playlist is added to be managed", async () => {
     // Arrange
-    // Learned the worst way: the async-lock library does not work with fake timers
-    jest.useRealTimers();
-
     globalVariables.ORDER_PLAYLIST_INTERVAL = 100;
-    const HALF_PLAYLIST_INTERVAL = globalVariables.ORDER_PLAYLIST_INTERVAL / 2;
-    const ORDER_PLAYLIST_UNDER_INTERVAL = 1;
-    const ORDER_PLAYLIST_OVER_INTERVAL =
-      globalVariables.ORDER_PLAYLIST_INTERVAL + HALF_PLAYLIST_INTERVAL;
-    const SIX_INTERVALS = globalVariables.ORDER_PLAYLIST_INTERVAL * 6;
-    const FIVE_INTERVALS_AND_A_HALF = SIX_INTERVALS - HALF_PLAYLIST_INTERVAL;
+    const TWO_INTERVALS_AND_A_HALF =
+      2.5 * globalVariables.ORDER_PLAYLIST_INTERVAL;
 
-    playlistManagementService.orderPlaylist = jest
-      .fn()
-      .mockImplementationOnce(() => sleep(ORDER_PLAYLIST_OVER_INTERVAL))
-      .mockImplementation(() => sleep(ORDER_PLAYLIST_UNDER_INTERVAL));
-
-    mockManagedPlaylist.add = jest.fn();
-
-    const lockSpy = jest.spyOn(AsyncLock.prototype, "isBusy");
+    playlistManagementService.reorderPlaylist = jest.fn();
 
     // Act
     await playlistManagementService.managePlaylist("RFT1", "P1");
-    await sleep(FIVE_INTERVALS_AND_A_HALF);
+    jest.advanceTimersByTime(TWO_INTERVALS_AND_A_HALF);
 
     // Assert
-    expect(lockSpy).toHaveBeenCalledTimes(5);
-    expect(lockSpy).nthReturnedWith(1, false);
-    expect(lockSpy).nthReturnedWith(2, true);
-    expect(lockSpy).nthReturnedWith(3, false);
-    expect(lockSpy).nthReturnedWith(4, false);
-    expect(lockSpy).nthReturnedWith(5, false);
+    expect(setInterval).toHaveBeenCalledTimes(1);
+    expect(playlistManagementService.reorderPlaylist).toHaveBeenCalledTimes(2);
+    expect(playlistManagementService.reorderPlaylist).toHaveBeenNthCalledWith(
+      1,
+      "RFT1",
+      "P1"
+    );
+    expect(playlistManagementService.reorderPlaylist).toHaveBeenNthCalledWith(
+      2,
+      "RFT1",
+      "P1"
+    );
     expect(mockManagedPlaylist.add).toHaveBeenCalledTimes(1);
-    expect(playlistManagementService.orderPlaylist).toHaveBeenCalledTimes(4);
-
-    jest.useFakeTimers();
   });
 });
