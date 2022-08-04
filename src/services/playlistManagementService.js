@@ -73,10 +73,10 @@ async function managePlaylist(playlistId, refreshToken) {
 
 async function unmanagePlaylist(playlistId, refreshToken) {
   await module.exports.validatePlaylistBelongsToUser(playlistId, refreshToken);
-  await module.exports.validatePlaylistIsRegistred(playlistId);
+  await module.exports.validatePlaylistIsRegistred(playlistId, refreshToken);
 
-  clearInterval(managedPlaylists.get(playlistId));
-  managedPlaylists.remove(playlistId);
+  clearInterval(managedPlaylists.get(refreshToken, playlistId));
+  managedPlaylists.remove(refreshToken, playlistId);
 }
 
 async function validatePlaylistBelongsToUser(playlistId, refreshToken) {
@@ -93,8 +93,8 @@ async function validatePlaylistBelongsToUser(playlistId, refreshToken) {
   }
 }
 
-async function validatePlaylistIsRegistred(playlistId) {
-  if (!managedPlaylists.get(playlistId)) {
+async function validatePlaylistIsRegistred(playlistId, refreshToken) {
+  if (!managedPlaylists.get(refreshToken, playlistId)) {
     throw new ResourceNotFoundError(
       `The given playlist [${playlistId}] was never added`
     );

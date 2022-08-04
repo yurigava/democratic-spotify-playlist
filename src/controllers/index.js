@@ -55,6 +55,7 @@ async function removePlaylist(req, res) {
   );
   res.statusCode = 200;
   res.json({ message: "Playlist Removed" });
+  res.send();
 }
 
 function getManagedPlaylistsIds(req, res) {
