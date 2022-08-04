@@ -1,40 +1,42 @@
-const voteSkipService = require('../services/voteSkipService')
-const spotifyAuthenticationService = require('../services/spotifyAuthenticationService')
-const spotifyPlaylistManagementService = require('../services/playlistManagementService')
-const currentUserProfileService = require('../services/currentUserProfileService')
+const voteSkipService = require("../services/voteSkipService");
+const spotifyAuthenticationService = require("../services/spotifyAuthenticationService");
+const spotifyPlaylistManagementService = require("../services/playlistManagementService");
+const currentUserProfileService = require("../services/currentUserProfileService");
 
 // TODO: Have multiple controllers
 
-function login (req, res) {
-  res.redirect(spotifyAuthenticationService.createAuthorizeURL())
+function login(req, res) {
+  res.redirect(spotifyAuthenticationService.createAuthorizeURL());
 }
 
-async function callback (req, res) {
-  const authenticationData = await spotifyAuthenticationService.authenticate(req.query.code)
-  res.cookie('DP_RFT', authenticationData.refreshToken)
-  res.redirect(`${process.env.WEB_APP_BASE_URL}/playlist`)
+async function callback(req, res) {
+  const authenticationData = await spotifyAuthenticationService.authenticate(
+    req.query.code
+  );
+  res.cookie("DP_RFT", authenticationData.refreshToken);
+  res.redirect(`${process.env.WEB_APP_BASE_URL}/playlist`);
 }
 
-function register (req, res) {
-  if (voteSkipService.registerDevice(req.header('deviceId'))) {
-    res.statusCode = 200
+function register(req, res) {
+  res.statusCode = voteSkipService.registerDevice(req.header("deviceId"))
+    ? 200
+    : 201;
+
+  res.send();
+}
+
+function voteskip(req, res) {
+  if (voteSkipService.registerVote(req.header("deviceId"))) {
+    res.statusCode = 200;
+    res.json({ message: "Vote skip succesfuly registred" });
   } else {
-    res.statusCode = 201
-  }
-  res.send()
-}
-
-function voteskip (req, res) {
-  if (voteSkipService.registerVote(req.header('deviceId'))) {
-    res.statusCode = 200
-    res.json({ message: 'Vote skip succesfuly registred' })
-  } else {
-    res.statusCode = 401
-    res.json({ message: 'Device not registred' })
+    res.statusCode = 401;
+    res.json({ message: "Device not registred" });
   }
 
-  res.send()
+  res.send();
 }
+
 // TODO cookie as first argument
 async function addPlaylist (req, res) {
   await spotifyPlaylistManagementService.managePlaylist(req.params.playlistId, req.cookies.DP_RFT)
@@ -43,25 +45,29 @@ async function addPlaylist (req, res) {
   res.send()
 }
 
-async function removePlaylist (req, res) {
-  await spotifyPlaylistManagementService.unmanagePlaylist(req.params.playlistId, req.cookies.DP_RFT)
-  res.statusCode = 200
-  res.json({ message: 'Playlist Removed' })
-  res.send()
+async function removePlaylist(req, res) {
+  await spotifyPlaylistManagementService.unmanagePlaylist(
+    req.body.playlistId,
+    req.cookies.DP_RFT
+  );
+  res.statusCode = 200;
+  res.json({ message: "Playlist Removed" });
 }
 
-function getManagedPlaylistsIds (req, res) {
-  const managedPlaylists = spotifyPlaylistManagementService.getManagedPlaylistsIds(req.cookies.DP_RFT)
-  res.statusCode = 200
-  res.json(managedPlaylists)
-  res.send()
+function getManagedPlaylistsIds(req, res) {
+  const managedPlaylists =
+    spotifyPlaylistManagementService.getManagedPlaylistsIds(req.cookies.DP_RFT);
+  res.statusCode = 200;
+  res.json(managedPlaylists);
 }
 
-async function getMyPlaylists (req, res) {
-  const userPlaylists = await currentUserProfileService.getPlaylists(req.query, req.cookies.DP_RFT)
-  res.statusCode = 200
-  res.json(userPlaylists)
-  res.send()
+async function getMyPlaylists(req, res) {
+  const userPlaylists = await currentUserProfileService.getPlaylists(
+    req.query,
+    req.cookies.DP_RFT
+  );
+  res.statusCode = 200;
+  res.json(userPlaylists);
 }
 
 function triggerReorder (req, res) {
@@ -72,7 +78,7 @@ function triggerReorder (req, res) {
     for (let playlistIndex in managedPlaylists.playlistIds) {
       console.log(`reordering ${managedPlaylists.playlistIds[playlistIndex]}`)
       const reorderResponse = spotifyPlaylistManagementService.orderPlaylist(
-          managedPlaylists.playlistIds[playlistIndex], req.cookies.DP_RFT)
+        managedPlaylists.playlistIds[playlistIndex], req.cookies.DP_RFT)
     }
   } else {
     res.statusCode = 400
@@ -91,4 +97,4 @@ module.exports = {
   getManagedPlaylistsIds,
   getMyPlaylists,
   triggerReorder
-}
+};

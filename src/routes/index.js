@@ -1,8 +1,8 @@
-const express = require('express')
-const asyncHandler = require('express-async-handler')
-
-const authenticationService = require('../services/spotifyAuthenticationService')
-const UserNotAuthenticatedError = require('../errors/UserNotAuthenticatedError')
+const express = require("express");
+const asyncHandler = require("express-async-handler");
+const authenticationService = require("../services/spotifyAuthenticationService");
+const UserNotAuthenticatedError = require("../errors/UserNotAuthenticatedError");
+const index = require("../controllers/index");
 
 const index = require('../controllers/index')
 const router = express.Router()
@@ -22,11 +22,11 @@ router.delete('/playlist/:playlistId', ensureSpotifyAuthentication, asyncHandler
 router.get('/me/playlist', ensureSpotifyAuthentication, asyncHandler(index.getMyPlaylists))
 router.post('/trigger-reorder', ensureSpotifyAuthentication, asyncHandler(index.triggerReorder))
 
-function ensureSpotifyAuthentication (req, res, next) {
+function ensureSpotifyAuthentication(req, res, next) {
   if (!authenticationService.isUserAuthenticated(req.cookies.DP_RFT)) {
-    throw new UserNotAuthenticatedError()
+    throw new UserNotAuthenticatedError();
   }
-  return next()
+  return next();
 }
 
 module.exports = router

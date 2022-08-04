@@ -1,5 +1,5 @@
-function generatePlaylistSnapshotId (snapshotId) {
-  return { body: { snapshot_id: snapshotId } }
+function generatePlaylistSnapshotId(snapshotId) {
+  return { body: { snapshot_id: snapshotId } };
 }
 
-module.exports.generatePlaylistSnapshotId = generatePlaylistSnapshotId
+module.exports.generatePlaylistSnapshotId = generatePlaylistSnapshotId;
