@@ -38,16 +38,19 @@ function voteskip(req, res) {
 }
 
 // TODO cookie as first argument
-async function addPlaylist (req, res) {
-  await spotifyPlaylistManagementService.managePlaylist(req.params.playlistId, req.cookies.DP_RFT)
-  res.statusCode = 201
-  res.json({ message: 'Playlist Added' })
-  res.send()
+async function addPlaylist(req, res) {
+  await spotifyPlaylistManagementService.managePlaylist(
+    req.params.playlistId,
+    req.cookies.DP_RFT
+  );
+  res.statusCode = 201;
+  res.json({ message: "Playlist Added" });
+  res.send();
 }
 
 async function removePlaylist(req, res) {
   await spotifyPlaylistManagementService.unmanagePlaylist(
-    req.body.playlistId,
+    req.params.playlistId,
     req.cookies.DP_RFT
   );
   res.statusCode = 200;
@@ -70,21 +73,24 @@ async function getMyPlaylists(req, res) {
   res.json(userPlaylists);
 }
 
-function triggerReorder (req, res) {
-  const managedPlaylists = spotifyPlaylistManagementService.getManagedPlaylistsIds(req.cookies.DP_RFT)
-  console.log(`managedPlaylists ${JSON.stringify(managedPlaylists)}`)
-  if(managedPlaylists.playlistIds.length > 0) {
-    res.statusCode = 201
+function triggerReorder(req, res) {
+  const managedPlaylists =
+    spotifyPlaylistManagementService.getManagedPlaylistsIds(req.cookies.DP_RFT);
+  console.log(`managedPlaylists ${JSON.stringify(managedPlaylists)}`);
+  if (managedPlaylists.playlistIds.length > 0) {
+    res.statusCode = 201;
     for (let playlistIndex in managedPlaylists.playlistIds) {
-      console.log(`reordering ${managedPlaylists.playlistIds[playlistIndex]}`)
+      console.log(`reordering ${managedPlaylists.playlistIds[playlistIndex]}`);
       const reorderResponse = spotifyPlaylistManagementService.orderPlaylist(
-        managedPlaylists.playlistIds[playlistIndex], req.cookies.DP_RFT)
+        managedPlaylists.playlistIds[playlistIndex],
+        req.cookies.DP_RFT
+      );
     }
   } else {
-    res.statusCode = 400
-    res.json({err: 'No managed playlists found'})
+    res.statusCode = 400;
+    res.json({ err: "No managed playlists found" });
   }
-  res.send()
+  res.send();
 }
 
 module.exports = {
@@ -96,5 +102,5 @@ module.exports = {
   removePlaylist,
   getManagedPlaylistsIds,
   getMyPlaylists,
-  triggerReorder
+  triggerReorder,
 };
