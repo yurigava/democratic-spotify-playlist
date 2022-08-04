@@ -130,9 +130,9 @@ class SpotifyClientWrapper
     } catch (err)
     {
       console.error(
-        `Error while reordering Tracks in Playlists!\nError:${err}`
+        `Error while reordering Tracks in Playlists!\nError:${err}\nRetrying...`
       );
-      return "";
+      await this.reorderTracksInPlaylist(playlistId, positionInCurentPlaylist, positionInOrderedPlaylist, options);
     }
   }
 
