@@ -6,7 +6,7 @@ describe("When ordering a playlist that has already a song playing, the algorith
   it("A playlist that doesnt have any songs yet should be sorted without throwing any exception ", async () => {
     const playlist = spotifyPlaylistFixtures.generatePlaylistItems();
 
-    const reorderedPlaylist = playlistOrderingService.reorderPlaylist(playlist);
+    const reorderedPlaylist = playlistOrderingService.definePlaylistTracksOrder(playlist);
 
     expect(reorderedPlaylist).toStrictEqual([]);
   });
@@ -16,7 +16,7 @@ describe("When ordering a playlist that has already a song playing, the algorith
       { trackId: "A1" },
     ]);
 
-    const reorderedPlaylist = playlistOrderingService.reorderPlaylist(
+    const reorderedPlaylist = playlistOrderingService.definePlaylistTracksOrder(
       playlist,
       playlist[0]
     );
@@ -33,7 +33,7 @@ describe("When ordering a playlist that has already a song playing, the algorith
       { trackId: "A3" },
     ]);
 
-    const reorderedPlaylist = playlistOrderingService.reorderPlaylist(
+    const reorderedPlaylist = playlistOrderingService.definePlaylistTracksOrder(
       playlist,
       playlist[0]
     );
@@ -52,7 +52,7 @@ describe("When ordering a playlist that has already a song playing, the algorith
       { trackId: "A2" },
     ]);
 
-    const reorderedPlaylist = playlistOrderingService.reorderPlaylist(
+    const reorderedPlaylist = playlistOrderingService.definePlaylistTracksOrder(
       playlist,
       playlist[0]
     );
@@ -75,7 +75,7 @@ describe("When ordering a playlist that has already a song playing, the algorith
       { trackId: "A2" },
     ]);
 
-    const reorderedPlaylist = playlistOrderingService.reorderPlaylist(
+    const reorderedPlaylist = playlistOrderingService.definePlaylistTracksOrder(
       playlist,
       playlist[0]
     );
@@ -99,7 +99,7 @@ describe("When ordering a playlist that has already a song playing, the algorith
       { trackId: "B1", added_at: "2019-12-27T01:30:02Z" },
     ]);
 
-    const reorderedPlaylist = playlistOrderingService.reorderPlaylist(
+    const reorderedPlaylist = playlistOrderingService.definePlaylistTracksOrder(
       playlist,
       playlist[0]
     );
@@ -119,7 +119,7 @@ describe("When ordering a playlist that has already a song playing, the algorith
       { trackId: "B1", added_at: "2019-12-27T01:30:02Z" },
     ]);
 
-    const reorderedPlaylist = playlistOrderingService.reorderPlaylist(
+    const reorderedPlaylist = playlistOrderingService.definePlaylistTracksOrder(
       playlist,
       playlist[0]
     );
@@ -139,7 +139,7 @@ describe("When ordering a playlist that has already a song playing, the algorith
       { trackId: "C1" },
     ]);
 
-    const reorderedPlaylist = playlistOrderingService.reorderPlaylist(
+    const reorderedPlaylist = playlistOrderingService.definePlaylistTracksOrder(
       playlist,
       playlist[3]
     );
@@ -159,7 +159,7 @@ describe("When ordering a playlist that has already a song playing, the algorith
       { trackId: "A2" },
     ]);
 
-    const reorderedPlaylist = playlistOrderingService.reorderPlaylist(
+    const reorderedPlaylist = playlistOrderingService.definePlaylistTracksOrder(
       playlist,
       playlist[3]
     );
@@ -179,7 +179,7 @@ describe("When ordering a playlist that has already a song playing, the algorith
       { trackId: "B1" },
     ]);
 
-    const reorderedPlaylist = playlistOrderingService.reorderPlaylist(
+    const reorderedPlaylist = playlistOrderingService.definePlaylistTracksOrder(
       playlist,
       playlist[1]
     );
@@ -201,7 +201,7 @@ describe("When ordering a playlist that has already a song playing, the algorith
       { trackId: "A2" },
     ]);
 
-    const reorderedPlaylist = playlistOrderingService.reorderPlaylist(
+    const reorderedPlaylist = playlistOrderingService.definePlaylistTracksOrder(
       playlist,
       playlist[0]
     );
@@ -223,7 +223,7 @@ describe("When ordering a playlist that has already a song playing, the algorith
       { trackId: "B1" },
     ]);
 
-    const reorderedPlaylist = playlistOrderingService.reorderPlaylist(
+    const reorderedPlaylist = playlistOrderingService.definePlaylistTracksOrder(
       playlist,
       {}
     );
@@ -247,7 +247,7 @@ describe("When ordering a playlist that has already a song playing, the algorith
       { trackId: "N1" },
     ]);
 
-    const reorderedPlaylist = playlistOrderingService.reorderPlaylist(
+    const reorderedPlaylist = playlistOrderingService.definePlaylistTracksOrder(
       playlist,
       otherPlaylist[0]
     );

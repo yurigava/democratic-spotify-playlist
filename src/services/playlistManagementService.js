@@ -12,7 +12,7 @@ const managedPlaylists = require("../repositories/managedPlaylists");
 const AsyncLock = require("async-lock");
 const lock = new AsyncLock();
 
-async function orderPlaylist(playlistId, refreshToken) {
+async function reorderPlaylistOnSpotify(playlistId, refreshToken) {
   const spotifyAuthenticatedClient =
     await spotifyAuthenticationService.provideAuthenticatedClient(refreshToken);
   let currentPlaylistTracks =
@@ -31,7 +31,7 @@ async function orderPlaylist(playlistId, refreshToken) {
       (trackInfo) => trackInfo.track.id === currentTrackId
     ) ?? {};
 
-  const reorderedPlaylistTracks = playlistOrderingService.reorderPlaylist(
+  const reorderedPlaylistTracks = playlistOrderingService.definePlaylistTracksOrder(
     currentPlaylistTracks,
     currentTrack
   );
@@ -54,16 +54,18 @@ function getManagedPlaylistsIds(refreshToken) {
   return { playlistIds: managedPlaylists.getAllPlaylistIds(refreshToken) };
 }
 
+function reorderPlaylist(playlistId, refreshToken) {
+  if (lock.isBusy(playlistId) === false) {
+    lock.acquire(playlistId, function () {
+      return module.exports.reorderPlaylistOnSpotify(playlistId, refreshToken);
+    });
+  }
+}
+
 async function managePlaylist(playlistId, refreshToken) {
   await module.exports.validatePlaylistBelongsToUser(playlistId, refreshToken);
-  const lockKey = playlistId;
-
   const timer = setInterval(() => {
-    if (!lock.isBusy(lockKey)) {
-      lock.acquire(lockKey, function () {
-        return module.exports.orderPlaylist(playlistId, refreshToken);
-      });
-    }
+    module.exports.reorderPlaylist(playlistId, refreshToken);
   }, globalVariables.ORDER_PLAYLIST_INTERVAL);
 
   managedPlaylists.add(refreshToken, playlistId, {
@@ -102,7 +104,8 @@ async function validatePlaylistIsRegistred(playlistId, refreshToken) {
 }
 
 module.exports = {
-  orderPlaylist,
+  reorderPlaylist,
+  reorderPlaylistOnSpotify,
   managePlaylist,
   unmanagePlaylist,
   getManagedPlaylistsIds,

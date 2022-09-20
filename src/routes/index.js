@@ -5,8 +5,10 @@ const UserNotAuthenticatedError = require("../errors/UserNotAuthenticatedError")
 const index = require("../controllers/index");
 const router = express.Router();
 
+
 // TODO refactor these endpoints name, they are pretty bad and we want to be closer to REST standard practices (names should be nouns) and
 // verbs. The methods (GET, PUT, DELETE) are the verbs along with state in the body
+
 router.get("/secret-login", index.login);
 router.get("/callback", index.callback);
 router.get("/register", index.register);
@@ -46,5 +48,6 @@ function ensureSpotifyAuthentication(req, res, next) {
   }
   return next();
 }
+
 
 module.exports = router

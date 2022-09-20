@@ -78,20 +78,21 @@ function triggerReorder(req, res) {
   const managedPlaylists =
     spotifyPlaylistManagementService.getManagedPlaylistsIds(req.cookies.DP_RFT);
   console.log(`managedPlaylists ${JSON.stringify(managedPlaylists)}`);
-  if (managedPlaylists.playlistIds.length > 0) {
-    res.statusCode = 201;
-    for (let playlistIndex in managedPlaylists.playlistIds) {
-      console.log(`reordering ${managedPlaylists.playlistIds[playlistIndex]}`);
-      const reorderResponse = spotifyPlaylistManagementService.orderPlaylist(
-        managedPlaylists.playlistIds[playlistIndex],
+  const { playlistIds } = managedPlaylists;
+  if (playlistIds.length > 0) {
+    res.statusCode = 200;
+    res.json({ message: "Reorder triggered" });
+    playlistIds.forEach((playlistId) => {
+      console.log(`reordering ${playlistId}`);
+      spotifyPlaylistManagementService.reorderPlaylist(
+        playlistId,
         req.cookies.DP_RFT
       );
-    }
-  } else {
-    res.statusCode = 400;
-    res.json({ err: "No managed playlists found" });
+    });
   }
-  res.send();
+
+  res.statusCode = 400;
+  res.json({ message: "No managed playlists found" });
 }
 
 module.exports = {

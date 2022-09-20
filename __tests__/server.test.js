@@ -200,6 +200,58 @@ describe("Playlist ordering management endpoints", () => {
   );
 });
 
+describe("Trigger endpoints", () => {
+  beforeAll(() => {
+    jest
+      .spyOn(spotifyAuthenticationService, "isUserAuthenticated")
+      .mockReturnValue(true);
+  });
+
+  afterEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it("When a client requests to reorder all their playlists and they have no playlist being managed, status code 400 should be returned", async () => {
+    // Arrange
+    playlistManagementService.getManagedPlaylistsIds = jest.fn(() => ({
+      playlistIds: [],
+    }));
+
+    // Act
+    const res = await request(server)
+      .post("/trigger-reorder")
+      .set("Cookie", ["DP_RFT=RT1"])
+      .send();
+
+    // Asssert
+    expect(
+      playlistManagementService.getManagedPlaylistsIds
+    ).toHaveBeenCalledWith("RT1");
+    expect(playlistManagementService.reorderPlaylist).toHaveBeenCalledTimes(0);
+    expect(res.statusCode).toBe(400);
+  });
+
+  it("When a client requests to reorder all their playlists and they have playlists being managed, status code 200 should be returned", async () => {
+    // Arrange
+    playlistManagementService.getManagedPlaylistsIds = jest.fn(() => ({
+      playlistIds: ["I1", "I2"],
+    }));
+
+    // Act
+    const res = await request(server)
+      .post("/trigger-reorder")
+      .set("Cookie", ["DP_RFT=RT1"])
+      .send();
+
+    // Asssert
+    expect(
+      playlistManagementService.getManagedPlaylistsIds
+    ).toHaveBeenCalledWith("RT1");
+    expect(playlistManagementService.reorderPlaylist).toHaveBeenCalledTimes(2);
+    expect(res.statusCode).toBe(200);
+  });
+});
+
 describe("Spotify playlist endpoints", () => {
   beforeAll(() => {
     jest
@@ -267,6 +319,17 @@ describe("Non authenticated users are not allowed to call protected endpoints", 
       "The user is not authenticated. Please ensure to authenticate before performing this action"
     );
   });
+
+  it("When a client performs a post request to /trigger-reorder without being authenticated, an status code 401 should be returned", async () => {
+    const res = await request(server).post("/trigger-reorder").send();
+
+    expect(spotifyAuthenticationService.isUserAuthenticated).toBeCalledTimes(1);
+    expect(res.statusCode).toBe(401);
+    expect(res.body.message).toBe(
+      "The user is not authenticated. Please ensure to authenticate before performing this action"
+    );
+  });
+
 
   it("When a client performs a delete request to /playlist without being authenticated, an status code 401 should be returned", async () => {
     const res = await request(server).delete("/playlist").send();
