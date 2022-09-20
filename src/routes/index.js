@@ -6,7 +6,7 @@ const index = require("../controllers/index");
 
 const router = express.Router();
 
-function ensureSpotifyAuthentication(req, res, next) {
+function ensureSpotifyAuthentication (req, res, next) {
   if (!authenticationService.isUserAuthenticated(req.cookies.DP_RFT)) {
     throw new UserNotAuthenticatedError();
   }
@@ -45,6 +45,11 @@ router.get(
   "/me/playlist",
   ensureSpotifyAuthentication,
   asyncHandler(index.getMyPlaylists)
+);
+router.post(
+  "/trigger-reorder",
+  ensureSpotifyAuthentication,
+  index.triggerReorder
 );
 
 module.exports = router;
