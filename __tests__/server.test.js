@@ -95,9 +95,9 @@ describe("Playlist ordering management endpoints", () => {
     });
 
     const res = await request(server)
-      .post("/playlist")
+      .post("/playlist/P1")
       .set("Cookie", ["DP_RFT=RT1"])
-      .send({ playlistId: "P1" });
+      .send();
 
     expect(res.statusCode).toBe(400);
     expect(res.body.message).toBe(
@@ -109,9 +109,9 @@ describe("Playlist ordering management endpoints", () => {
     playlistManagementService.managePlaylist = jest.fn(() => true);
 
     const res = await request(server)
-      .post("/playlist")
+      .post("/playlist/P1")
       .set("Cookie", ["DP_RFT=RT1"])
-      .send({ playlistId: "P1" });
+      .send();
 
     expect(res.statusCode).toBe(201);
   });
@@ -122,9 +122,9 @@ describe("Playlist ordering management endpoints", () => {
 
   it("When a client requests to remove a playlist that they own, an status code 200 should be returned", async () => {
     const res = await request(server)
-      .delete("/playlist")
+      .delete("/playlist/P1")
       .set("Cookie", ["DP_RFT=RT1"])
-      .send({ playlistId: "P1" });
+      .send();
 
     expect(res.statusCode).toBe(200);
     expect(res.body.message).toBe("Playlist Removed");
@@ -136,9 +136,9 @@ describe("Playlist ordering management endpoints", () => {
     });
 
     const res = await request(server)
-      .delete("/playlist")
+      .delete("/playlist/P1")
       .set("Cookie", ["DP_RFT=RT1"])
-      .send({ playlistId: "P1" });
+      .send();
 
     expect(res.statusCode).toBe(400);
     expect(res.body.message).toBe(
@@ -154,9 +154,9 @@ describe("Playlist ordering management endpoints", () => {
     });
 
     const res = await request(server)
-      .delete("/playlist")
+      .delete("/playlist/P1")
       .set("Cookie", ["DP_RFT=RT1"])
-      .send({ playlistId: "P1" });
+      .send();
 
     expect(res.statusCode).toBe(404);
     expect(res.body.message).toBe(
@@ -172,9 +172,9 @@ describe("Playlist ordering management endpoints", () => {
     });
 
     const res = await request(server)
-      .delete("/playlist")
+      .delete("/playlist/P1")
       .set("Cookie", ["DP_RFT=RT1"])
-      .send({ playlistId: "P1" });
+      .send();
 
     expect(res.statusCode).toBe(404);
     expect(res.body.message).toBe(
@@ -311,7 +311,7 @@ describe("Non authenticated users are not allowed to call protected endpoints", 
 
   // TODO: To be substitued with it.each whenever VS Code jest runner supports it
   it("When a client performs a post request to /playlist without being authenticated, an status code 401 should be returned", async () => {
-    const res = await request(server).post("/playlist").send();
+    const res = await request(server).get("/playlist").send();
 
     expect(spotifyAuthenticationService.isUserAuthenticated).toBeCalledTimes(1);
     expect(res.statusCode).toBe(401);
@@ -332,7 +332,7 @@ describe("Non authenticated users are not allowed to call protected endpoints", 
 
 
   it("When a client performs a delete request to /playlist without being authenticated, an status code 401 should be returned", async () => {
-    const res = await request(server).delete("/playlist").send();
+    const res = await request(server).delete("/playlist/P1").send();
 
     expect(spotifyAuthenticationService.isUserAuthenticated).toBeCalledTimes(1);
     expect(res.statusCode).toBe(401);

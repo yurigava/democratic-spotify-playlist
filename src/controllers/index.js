@@ -40,20 +40,22 @@ function voteskip(req, res) {
 // TODO cookie as first argument
 async function addPlaylist(req, res) {
   await spotifyPlaylistManagementService.managePlaylist(
-    req.body.playlistId,
+    req.params.playlistId,
     req.cookies.DP_RFT
   );
   res.statusCode = 201;
   res.json({ message: "Playlist Added" });
+  res.send();
 }
 
 async function removePlaylist(req, res) {
   await spotifyPlaylistManagementService.unmanagePlaylist(
-    req.body.playlistId,
+    req.params.playlistId,
     req.cookies.DP_RFT
   );
   res.statusCode = 200;
   res.json({ message: "Playlist Removed" });
+  res.send();
 }
 
 function getManagedPlaylistsIds(req, res) {
@@ -103,4 +105,4 @@ module.exports = {
   getManagedPlaylistsIds,
   getMyPlaylists,
   triggerReorder,
-}
+};

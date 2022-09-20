@@ -1,4 +1,4 @@
-const globalVariables = require("../globals/variables")
+const globalVariables = require("../globals/variables");
 
 const spotifyAuthenticationService = require("./spotifyAuthenticationService");
 const playlistOrderingService = require("./playlistOrderingService");
@@ -9,7 +9,7 @@ const ResourceNotFoundError = require("../errors/ResourceNotFoundError");
 
 const managedPlaylists = require("../repositories/managedPlaylists");
 
-const AsyncLock = require('async-lock');
+const AsyncLock = require("async-lock");
 const lock = new AsyncLock();
 
 async function reorderPlaylistOnSpotify(playlistId, refreshToken) {
@@ -64,22 +64,21 @@ function reorderPlaylist(playlistId, refreshToken) {
 
 async function managePlaylist(playlistId, refreshToken) {
   await module.exports.validatePlaylistBelongsToUser(playlistId, refreshToken);
-
   const timer = setInterval(() => {
     module.exports.reorderPlaylist(playlistId, refreshToken);
   }, globalVariables.ORDER_PLAYLIST_INTERVAL);
 
   managedPlaylists.add(refreshToken, playlistId, {
-    timer
+    timer,
   });
 }
 
 async function unmanagePlaylist(playlistId, refreshToken) {
   await module.exports.validatePlaylistBelongsToUser(playlistId, refreshToken);
-  await module.exports.validatePlaylistIsRegistred(playlistId);
+  await module.exports.validatePlaylistIsRegistred(playlistId, refreshToken);
 
-  clearInterval(managedPlaylists.get(playlistId));
-  managedPlaylists.remove(playlistId);
+  clearInterval(managedPlaylists.get(refreshToken, playlistId));
+  managedPlaylists.remove(refreshToken, playlistId);
 }
 
 async function validatePlaylistBelongsToUser(playlistId, refreshToken) {
@@ -96,8 +95,8 @@ async function validatePlaylistBelongsToUser(playlistId, refreshToken) {
   }
 }
 
-async function validatePlaylistIsRegistred(playlistId) {
-  if (!managedPlaylists.get(playlistId)) {
+async function validatePlaylistIsRegistred(playlistId, refreshToken) {
+  if (!managedPlaylists.get(refreshToken, playlistId)) {
     throw new ResourceNotFoundError(
       `The given playlist [${playlistId}] was never added`
     );

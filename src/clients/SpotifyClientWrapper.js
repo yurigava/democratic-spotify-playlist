@@ -25,27 +25,31 @@ class SpotifyClientWrapper {
     return this.spotifyApi.createAuthorizeURL(scopes, state);
   }
 
-  async retrievePlaylistTracks (playlistId) {
-    let offsetCounter = 0
-    const tracksPerPage = 100
-    let tracksInfo = []
-    let tracksPage
+  async retrievePlaylistTracks(playlistId) {
+    let offsetCounter = 0;
+    const tracksPerPage = 100;
+    let tracksInfo = [];
+    let tracksPage;
 
     do {
       tracksPage = await this.spotifyApi
         .getPlaylistTracks(playlistId, {
           offset: offsetCounter,
           limit: tracksPerPage,
-          fields: 'items(added_at, added_by.id, track(id)), total'
+          fields: "items(added_at, added_by.id, track(id)), total",
         })
-        .then(data => data.body)
-        .catch(err => {
-          console.error(`Error while retrieving playlist tracks!\nError:${err}`)
+        .then((data) => {
+          tracksInfo = tracksInfo.concat(data.body.items);
+          offsetCounter += tracksPerPage;
+          return data.body;
         })
-      tracksInfo = tracksInfo.concat(tracksPage.items);
-      offsetCounter += tracksPerPage;
-    } while(tracksPage.total > offsetCounter)
-    return tracksInfo
+        .catch((err) => {
+          console.error(
+            `Error while retrieving playlist tracks!\nError:${err}`
+          );
+        });
+    } while (tracksPage.total > offsetCounter);
+    return tracksInfo;
   }
 
   retrievePlaylistSnapshotId(playlistId) {
@@ -92,25 +96,34 @@ class SpotifyClientWrapper {
       });
   }
 
-  reorderTracksInPlaylist(
+  async reorderTracksInPlaylist(
     playlistId,
     positionInCurentPlaylist,
     positionInOrderedPlaylist,
     options
   ) {
-    return this.spotifyApi
-      .reorderTracksInPlaylist(
+    console.log(
+      `Moving ${positionInCurentPlaylist} to ${positionInOrderedPlaylist}`
+    );
+    try {
+      const reply = await this.spotifyApi.reorderTracksInPlaylist(
         playlistId,
         positionInCurentPlaylist,
         positionInOrderedPlaylist,
         options
-      )
-      .then((data) => data?.body?.snapshot_id ?? "")
-      .catch((err) => {
-        console.error(
-          `Error while reordering Tracks in Playlists!\nError:${err}`
-        );
-      });
+      );
+      return reply?.body?.snapshot_id ?? "";
+    } catch (err) {
+      console.error(
+        `Error while reordering Tracks in Playlists!\nError:${err}\nRetrying...`
+      );
+      await this.reorderTracksInPlaylist(
+        playlistId,
+        positionInCurentPlaylist,
+        positionInOrderedPlaylist,
+        options
+      );
+    }
   }
 
   refreshToken() {

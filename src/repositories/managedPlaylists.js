@@ -12,7 +12,7 @@ function add(refreshToken, playlistId, item) {
     managedPlaylists[refreshToken] = new Map();
   }
 
-  managedPlaylists[refreshToken].set(playlistId, {...item});
+  managedPlaylists[refreshToken].set(playlistId, { ...item });
 }
 
 function get(refreshToken, playlistId) {
@@ -24,7 +24,7 @@ function getAllPlaylistIds(refreshToken) {
 }
 
 function remove(refreshToken, playlistId) {
-  delete managedPlaylists[refreshToken].delete(playlistId);
+  managedPlaylists[refreshToken].delete(playlistId);
 }
 
 module.exports = {
