@@ -26,9 +26,9 @@ Democratic-playlist comes to the rescue! The idea behind it is simple: a mechani
 - Improve testing covereage
 - Handle missing negative scenarios
 - Create a front-end applicatoin
-- Dockerize the application
+- ~~Dockerize the application~~
 
-## INSTALLING THE APP
+## RUNNING THE APP LOCALLY
 
 Clone the repo and run `npm install` to install its dependencies. 
 
@@ -63,6 +63,20 @@ Body:
     playlistId: ''
 }
 ```
+
+## BUILDING THE CONTAINER AND RUNNING THE APPLICATION AS A CONTAINER
+
+Clone the repo and run `npm install` to install its dependencies. 
+
+Build the container image via `docker build --tag dsm:latest .` command in the project's root folder
+
+Run the container from the image just created. 
+`SPOTIFY_CLIENT_ID` and `SPOTIFY_CLIENT_SECRET` needs to be passed as environment variables. Environment variables `SPOTIFY_CALLBACK` and `WEB_APP_BASE_URL`` defaults to http://localhost:8080/callback and
+http://localhost:3000, respectively. They can be overriden if required
+
+```
+ docker run -p 8080:8080 -e SPOTIFY_CLIENT_ID=[clientId] -e SPOTIFY_CLIENT_SECRET=[clientSecret] dsm
+``` 
 
 ## Acknowledgments
 
